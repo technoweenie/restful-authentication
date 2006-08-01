@@ -1,0 +1,24 @@
+Restful Authentication Generator
+====
+
+This is a basic restful authentication generator for rails, taken from acts as authenticated.  Currently it requires Rails 1.2 (or edge).
+
+To use:
+
+  ./script/generate authenticated user sessions
+
+The first parameter specifies the model that gets created in signup (typically a user or account model).  A model with migration is created,
+as well as a basic controller with the create method.
+
+The second parameter specifies the sessions controller name.  This is the controller that handles the actual login/logout function on the site.
+
+You can pass --skip_migration to skip the user migration.
+
+From here, you will need to add the resource routes in config/routes.rb.  
+
+  map.resources :users, :sessions
+
+Generate your mailer:
+
+  ./script/generate authenticated_mailer user
+   
