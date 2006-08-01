@@ -23,7 +23,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   def initialize(runtime_args, runtime_options = {})
     super
 
-    @controller_name = args.shift
+    @controller_name = args.shift || 'sessions'
     @model_controller_name = @name.pluralize
 
     # sessions controller
@@ -152,6 +152,6 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   protected
     # Override with your own usage banner.
     def banner
-      "Usage: #{$0} authenticated ModelName ControllerName"
+      "Usage: #{$0} authenticated ModelName [ControllerName]"
     end
 end
