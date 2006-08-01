@@ -154,4 +154,11 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     def banner
       "Usage: #{$0} authenticated ModelName [ControllerName]"
     end
+
+    def add_options!(opt)
+      opt.separator ''
+      opt.separator 'Options:'
+      opt.on("--skip-migration", 
+             "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
+    end
 end
