@@ -8,7 +8,8 @@ class <%= class_name %>Test < Test::Unit::TestCase
 
   def test_should_create_<%= file_name %>
     assert_difference <%= class_name %>, :count do
-      assert create_<%= file_name %>.valid?
+      <%= file_name %> = create_<%= file_name %>
+      assert !<%= file_name %>.new_record?, "#{<%= file_name %>.errors.full_messages.to_sentence}"
     end
   end
 
