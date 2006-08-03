@@ -96,7 +96,7 @@ class HttpLoginProxy < BaseLoginProxy
     end
     
     def check
-      @controller.assert_redirected_to :controller => 'account', :action => 'login'
+      @controller.assert_redirected_to :controller => 'sessions', :action => 'new'
     end
 end
 
