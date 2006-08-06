@@ -13,7 +13,7 @@ module AuthenticatedSystem
     
     # Store the given <%= file_name %> in the session.
     def current_<%= file_name %>=(new_<%= file_name %>)
-      session[:<%= file_name %>] = new_<%= file_name %>.nil? ? nil : new_<%= file_name %>.id
+      session[:<%= file_name %>] = (new_<%= file_name %>.nil? || new_<%= file_name %>.is_a?(Symbol)) ? nil : new_<%= file_name %>.id
       @current_<%= file_name %> = new_<%= file_name %>
     end
     
@@ -30,7 +30,7 @@ module AuthenticatedSystem
     #    current_<%= file_name %>.login != "bob"
     #  end
     def authorized?
-       true
+      true
     end
 
     # Filter method to enforce a login requirement.
