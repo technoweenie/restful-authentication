@@ -68,6 +68,32 @@ class <%= class_name %>Test < Test::Unit::TestCase
     assert_nil <%= table_name %>(:quentin).remember_token
   end
 
+  def test_should_remember_me_for_one_week
+    before = 1.week.from_now.utc
+    <%= table_name %>(:quentin).remember_me_for 1.week
+    after = 1.week.from_now.utc
+    assert_not_nil <%= table_name %>(:quentin).remember_token
+    assert_not_nil <%= table_name %>(:quentin).remember_token_expires_at
+    assert <%= table_name %>(:quentin).remember_token_expires_at.between?(before, after)
+  end
+
+  def test_should_remember_me_until_one_week
+    time = 1.week.from_now.utc
+    <%= table_name %>(:quentin).remember_me_until time
+    assert_not_nil <%= table_name %>(:quentin).remember_token
+    assert_not_nil <%= table_name %>(:quentin).remember_token_expires_at
+    assert_equal <%= table_name %>(:quentin).remember_token_expires_at, time
+  end
+
+  def test_should_remember_me_default_two_weeks
+    before = 2.weeks.from_now.utc
+    <%= table_name %>(:quentin).remember_me
+    after = 2.weeks.from_now.utc
+    assert_not_nil <%= table_name %>(:quentin).remember_token
+    assert_not_nil <%= table_name %>(:quentin).remember_token_expires_at
+    assert <%= table_name %>(:quentin).remember_token_expires_at.between?(before, after)
+  end
+
   protected
     def create_<%= file_name %>(options = {})
       <%= class_name %>.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
