@@ -59,9 +59,9 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
     assert @controller.send(:logged_in?)
   end
 
-  def test_should_fail_cookie_login
+  def test_should_fail_expired_cookie_login
     <%= table_name %>(:quentin).remember_me
-    users(:quentin).update_attribute :remember_token_expires_at, 5.minutes.ago.utc
+    users(:quentin).update_attribute :remember_token_expires_at, 5.minutes.ago
     @request.cookies["auth_token"] = cookie_for(:quentin)
     get :new
     assert !@controller.send(:logged_in?)
