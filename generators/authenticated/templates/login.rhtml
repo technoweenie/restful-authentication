@@ -1,4 +1,4 @@
-<%%= start_form_tag <%= controller_plural_name %>_path %>
+<%% form_tag <%= controller_plural_name %>_path do -%>
 <p><label for="login">Login</label><br/>
 <%%= text_field_tag 'login' %></p>
 
@@ -11,4 +11,4 @@
 -->
 
 <p><%%= submit_tag 'Log in' %></p>
-<%%= end_form_tag %>
+<%% end -%>
