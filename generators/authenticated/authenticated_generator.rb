@@ -63,6 +63,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       m.directory File.join('app/controllers', model_controller_class_path)
       m.directory File.join('app/helpers', controller_class_path)
       m.directory File.join('app/views', controller_class_path, controller_file_name)
+      m.directory File.join('app/views', class_path, "#{file_name}_notifier")
       m.directory File.join('test/functional', controller_class_path)
       m.directory File.join('app/controllers', model_controller_class_path)
       m.directory File.join('app/helpers', model_controller_class_path)
