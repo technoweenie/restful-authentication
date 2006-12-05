@@ -17,7 +17,12 @@ class <%= class_name %> < ActiveRecord::Base
   # Activates the user in the database.
   def activate
     @activated = true
-    update_attributes(:activated_at => Time.now.utc, :activation_code => nil)
+    self.attributes = {:activated_at => Time.now.utc, :activation_code => nil}
+    save(false)
+  end
+
+  def activated?
+    !! activation_code.nil?
   end
 
   # Returns true if the user has just been activated.
@@ -26,11 +31,7 @@ class <%= class_name %> < ActiveRecord::Base
   end <% end %>
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
-  <% if options[:include_activation] %>
-    u = find :first, :conditions => ['login = ? and activated_at IS NOT NULL', login]
-  <% else %>
-    u = find_by_login(login) # need to get the salt
-  <% end %>
+    u = <% if options[:include_activation] %>find :first, :conditions => ['login = ? and activated_at IS NOT NULL', login]<% else %>find_by_login(login)<% end %> # need to get the salt
     u && u.authenticated?(password) ? u : nil
   end
 
