@@ -16,6 +16,10 @@ class <%= class_name %>NotifierTest < Test::Unit::TestCase
     @expected.set_content_type "text", "plain", { "charset" => CHARSET }
   end
 
+  def test_dummy_test
+    #do nothing
+  end
+
   private
     def read_fixture(action)
       IO.readlines("#{FIXTURES_PATH}/<%= file_name %>_notifier/#{action}")

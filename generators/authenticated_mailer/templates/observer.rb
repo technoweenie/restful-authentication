@@ -4,6 +4,8 @@ class <%= class_name %>Observer < ActiveRecord::Observer
   end
 
   def after_save(<%= file_name %>)
+  <% if options[:include_activation] %>
     <%= class_name %>Notifier.deliver_activation(<%= file_name %>) if <%= file_name %>.recently_activated?
+  <% end %>
   end
 end
