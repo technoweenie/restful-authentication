@@ -19,7 +19,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
   end
 <% if options[:include_activation] %>
   def activate
-    self.current_<%= file_name %> = <%= class_name %>.find_by_activation_code(params[:activation])
+    self.current_<%= file_name %> = <%= class_name %>.find_by_activation_code(params[:activation_code])
     if logged_in? && !current_<%= file_name %>.activated?
       current_<%= file_name %>.activate
       flash[:notice] = "Signup complete!"
