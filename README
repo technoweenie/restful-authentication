@@ -5,7 +5,7 @@ This is a basic restful authentication generator for rails, taken from acts as a
 
 To use:
 
-  ./script/generate authenticated user sessions
+  ./script/generate authenticated user sessions --include-activation
 
 The first parameter specifies the model that gets created in signup (typically a user or account model).  A model with migration is created,
 as well as a basic controller with the create method.

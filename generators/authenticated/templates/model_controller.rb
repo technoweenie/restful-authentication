@@ -17,4 +17,13 @@ class <%= model_controller_class_name %>Controller < ApplicationController
   rescue ActiveRecord::RecordInvalid
     render :action => 'new'
   end
+  
+  def activate
+    self.current_<%= file_name %> = <%= class_name %>.find_by_activation_code(params[:activation])
+    if logged_in? && !current_<%= file_name %>.activated?
+      current_<%= file_name %>.activate
+      flash[:notice] = "Signup complete!"
+    end
+    redirect_back_or_default('/')
+  end
 end

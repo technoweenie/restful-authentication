@@ -55,6 +55,15 @@ class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
       assert_response :success
     end
   end
+  <% if options[:include_activation] %>
+  def test_should_activate_user
+    assert_nil <%= class_name %>.authenticate('aaron', 'test')
+    #get :activate, :id => <%= table_name %>(:aaron).activation_code
+    # We cheat here since there isn't an activate action in the controller
+    # Please do add one in your own code :-) -rjs-
+    <%= table_name %>(:aaron).activate
+    assert_equal <%= table_name %>(:aaron), <%= class_name %>.authenticate('aaron', 'test')
+  end <% end %>
 
   protected
     def create_<%= file_name %>(options = {})

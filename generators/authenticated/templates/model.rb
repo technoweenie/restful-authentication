@@ -12,10 +12,25 @@ class <%= class_name %> < ActiveRecord::Base
   validates_length_of       :email,    :within => 3..100
   validates_uniqueness_of   :login, :email, :case_sensitive => false
   before_save :encrypt_password
+  <% if options[:include_activation] %> before_create :make_activation_code <% end %>
+  <% if options[:include_activation] %>
+  # Activates the user in the database.
+  def activate
+    @activated = true
+    update_attributes(:activated_at => Time.now.utc, :activation_code => nil)
+  end
 
+  # Returns true if the user has just been activated.
+  def recently_activated?
+    @activated
+  end <% end %>
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
+  <% if options[:include_activation] %>
+    u = find :first, :conditions => ['login = ? and activated_at IS NOT NULL', login]
+  <% else %>
     u = find_by_login(login) # need to get the salt
+  <% end %>
     u && u.authenticated?(password) ? u : nil
   end
 
@@ -69,4 +84,9 @@ class <%= class_name %> < ActiveRecord::Base
     def password_required?
       crypted_password.blank? || !password.blank?
     end
+
+    <% if options[:include_activation] %>
+    def make_activation_code
+      self.activation_code = Digest::SHA1.hexdigest( Time.now.to_s.split(//).sort_by {rand}.join )
+    end <% end %>
 end
