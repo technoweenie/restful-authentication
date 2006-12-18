@@ -160,12 +160,12 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts ("-" * 70)
         puts "Don't forget to:"
         puts
-        puts "  - add restful routes in config.routes.rb"
+        puts "  - add restful routes in config/routes.rb"
         puts "    map.resources :#{model_controller_file_name}, :#{controller_file_name}"
         puts "    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate'"
         if options[:include_activation]
           puts
-          puts "  - add an observer to environment.rb"
+          puts "  - add an observer to config/environment.rb"
           puts "    config.active_record.observers = :#{file_name}_observer"
         end
         puts
@@ -184,7 +184,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts "Thanks for using restful_authentication"
         puts
         puts "Don't forget to comment out the observer line in environment.rb"
-        puts "  (This was optional. It may not even be there)"
+        puts "  (This was optional so it may not even be there)"
         puts "  # config.active_record.observers = :#{file_name}_observer"
         puts
         puts ("-" * 70)

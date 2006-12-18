@@ -7,18 +7,18 @@ To use:
 
   ./script/generate authenticated user sessions --include-activation
 
-The first parameter specifies the model that gets created in signup (typically a user or account model).  A model with migration is created,
-as well as a basic controller with the create method.
+The first parameter specifies the model that gets created in signup (typically a user or account model).  A model with migration is created, as well as a basic controller with the create method.
 
 The second parameter specifies the sessions controller name.  This is the controller that handles the actual login/logout function on the site.
 
-You can pass --skip_migration to skip the user migration.
+The third parameter (--include-activation) generates the code for a ActionMailer and its respective Activation Code through email.
+
+You can pass --skip-migration to skip the user migration.
 
 From here, you will need to add the resource routes in config/routes.rb.  
 
   map.resources :users, :sessions
 
-Generate your mailer:
+Also, add an observer to config/environment.rb if you chose the --include-activation option
+  config.active_record.observers = :user_observer # or whatever you named your model
 
-  ./script/generate authenticated_mailer user
-   
