@@ -22,7 +22,7 @@ class <%= class_name %> < ActiveRecord::Base
   end
 
   def activated?
-    !! activation_code.nil?
+    activation_code.nil?
   end
 
   # Returns true if the user has just been activated.

@@ -7,35 +7,35 @@ class <%= class_name %>Test < Test::Unit::TestCase
   fixtures :<%= table_name %>
 
   def test_should_create_<%= file_name %>
-    assert_difference <%= class_name %>, :count do
+    assert_difference '<%= class_name %>.count' do
       <%= file_name %> = create_<%= file_name %>
       assert !<%= file_name %>.new_record?, "#{<%= file_name %>.errors.full_messages.to_sentence}"
     end
   end
 
   def test_should_require_login
-    assert_no_difference <%= class_name %>, :count do
+    assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:login => nil)
       assert u.errors.on(:login)
     end
   end
 
   def test_should_require_password
-    assert_no_difference <%= class_name %>, :count do
+    assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:password => nil)
       assert u.errors.on(:password)
     end
   end
 
   def test_should_require_password_confirmation
-    assert_no_difference <%= class_name %>, :count do
+    assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:password_confirmation => nil)
       assert u.errors.on(:password_confirmation)
     end
   end
 
   def test_should_require_email
-    assert_no_difference <%= class_name %>, :count do
+    assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:email => nil)
       assert u.errors.on(:email)
     end
