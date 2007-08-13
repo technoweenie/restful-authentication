@@ -17,7 +17,12 @@ You can pass --skip-migration to skip the user migration.
 
 From here, you will need to add the resource routes in config/routes.rb.  
 
-  map.resources :users, :sessions
+  map.resources :users
+  map.resource  :session
+
+If you're on rails 1.2.3 you may need to specify the controller name for the session singular resource:
+
+  map.resource :session, :controller => 'sessions'
 
 Also, add an observer to config/environment.rb if you chose the --include-activation option
   config.active_record.observers = :user_observer # or whatever you named your model

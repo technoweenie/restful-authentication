@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../test_helper'
-require '<%= file_name %>_notifier'
+require '<%= file_name %>_mailer'
 
-class <%= class_name %>NotifierTest < Test::Unit::TestCase
+class <%= class_name %>MailerTest < Test::Unit::TestCase
   FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures'
   CHARSET = "utf-8"
 
@@ -22,7 +22,7 @@ class <%= class_name %>NotifierTest < Test::Unit::TestCase
 
   private
     def read_fixture(action)
-      IO.readlines("#{FIXTURES_PATH}/<%= file_name %>_notifier/#{action}")
+      IO.readlines("#{FIXTURES_PATH}/<%= file_name %>_mailer/#{action}")
     end
 
     def encode(subject)

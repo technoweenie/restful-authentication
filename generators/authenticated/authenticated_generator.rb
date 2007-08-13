@@ -54,7 +54,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                                                       "#{controller_class_name}Helper"
       m.class_collisions model_controller_class_path, "#{model_controller_class_name}Controller", # Model Controller
                                                       "#{model_controller_class_name}Helper"
-      m.class_collisions class_path,                  "#{class_name}", "#{class_name}Notifier", "#{class_name}NotifierTest", "#{class_name}Observer"
+      m.class_collisions class_path,                  "#{class_name}", "#{class_name}Mailer", "#{class_name}MailerTest", "#{class_name}Observer"
       m.class_collisions [], 'AuthenticatedSystem', 'AuthenticatedTestHelper'
 
       # Controller, helper, views, and test directories.
@@ -63,7 +63,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       m.directory File.join('app/controllers', model_controller_class_path)
       m.directory File.join('app/helpers', controller_class_path)
       m.directory File.join('app/views', controller_class_path, controller_file_name)
-      m.directory File.join('app/views', class_path, "#{file_name}_notifier")
+      m.directory File.join('app/views', class_path, "#{file_name}_mailer") if options[:include_activation]
       m.directory File.join('test/functional', controller_class_path)
       m.directory File.join('app/controllers', model_controller_class_path)
       m.directory File.join('app/helpers', model_controller_class_path)
@@ -77,7 +77,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                             "#{file_name}.rb")
 
       if options[:include_activation]
-        %w( notifier observer ).each do |model_type|
+        %w( mailer observer ).each do |model_type|
           m.template "#{model_type}.rb", File.join('app/models',
                                                class_path,
                                                "#{file_name}_#{model_type}.rb")
@@ -126,7 +126,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                             "#{file_name}_test.rb")
 
       if options[:include_activation]
-        m.template 'notifier_test.rb', File.join('test/unit', class_path, "#{file_name}_notifier_test.rb")
+        m.template 'mailer_test.rb', File.join('test/unit', class_path, "#{file_name}_mailer_test.rb")
       end
 
       m.template 'fixtures.yml',
@@ -141,7 +141,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         # Mailer templates
         %w( activation signup_notification ).each do |action|
           m.template "#{action}.rhtml",
-                     File.join('app/views', "#{file_name}_notifier", "#{action}.rhtml")
+                     File.join('app/views', "#{file_name}_mailer", "#{action}.rhtml")
         end
       end
 
@@ -161,9 +161,14 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts "Don't forget to:"
         puts
         puts "  - add restful routes in config/routes.rb"
-        puts "    map.resources :#{model_controller_file_name}, :#{controller_file_name}"
-        puts "    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate'"
+        puts "    map.resources :#{model_controller_file_name}"
+        puts "    map.resource  :#{controller_singular_name.singularize}"
+        puts
+        puts " Rails 1.2.3 may need a :controller option for the singular resource:"
+        puts "  - map.resource :#{controller_singular_name.singularize}, :controller => '#{controller_file_name}'"
+        puts
         if options[:include_activation]
+          puts "    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate'"
           puts
           puts "  - add an observer to config/environment.rb"
           puts "    config.active_record.observers = :#{file_name}_observer"

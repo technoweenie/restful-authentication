@@ -6,9 +6,10 @@ module AuthenticatedSystem
       current_<%= file_name %> != :false
     end
     
-    # Accesses the current <%= file_name %> from the session.
+    # Accesses the current <%= file_name %> from the session.  Set it to :false if login fails
+    # so that future calls do not hit the database.
     def current_<%= file_name %>
-      @current_<%= file_name %> ||= (session[:<%= file_name %>] && <%= class_name %>.find_by_id(session[:<%= file_name %>])) || :false
+      @current_user ||= (login_from_session || login_from_basic_auth || login_from_cookie || :false)
     end
     
     # Store the given <%= file_name %> in the session.
@@ -17,7 +18,7 @@ module AuthenticatedSystem
       @current_<%= file_name %> = new_<%= file_name %>
     end
     
-    # Check if the <%= file_name %> is authorized.
+    # Check if the <%= file_name %> is authorized
     #
     # Override this method in your controllers if you want to restrict access
     # to only a few actions or if you want to check if the <%= file_name %>
@@ -26,11 +27,11 @@ module AuthenticatedSystem
     # Example:
     #
     #  # only allow nonbobs
-    #  def authorize?
+    #  def authorized?
     #    current_<%= file_name %>.login != "bob"
     #  end
     def authorized?
-      true
+      logged_in?
     end
 
     # Filter method to enforce a login requirement.
@@ -48,11 +49,9 @@ module AuthenticatedSystem
     #   skip_before_filter :login_required
     #
     def login_required
-      username, passwd = get_auth_data
-      self.current_<%= file_name %> ||= <%= class_name %>.authenticate(username, passwd) || :false if username && passwd
-      logged_in? && authorized? ? true : access_denied
+      authorized? ? true : access_denied
     end
-    
+
     # Redirect as appropriate when an access request fails.
     #
     # The default action is to redirect to the login screen.
@@ -65,7 +64,7 @@ module AuthenticatedSystem
       respond_to do |accepts|
         accepts.html do
           store_location
-          redirect_to :controller => '<%= controller_file_name %>', :action => 'new'
+          redirect_to :controller => '/<%= controller_file_name %>', :action => 'login'
         end
         accepts.xml do
           headers["Status"]           = "Unauthorized"
@@ -96,16 +95,24 @@ module AuthenticatedSystem
       base.send :helper_method, :current_<%= file_name %>, :logged_in?
     end
 
-    # When called with before_filter :login_from_cookie will check for an :auth_token
-    # cookie and log the user back in if apropriate
-    def login_from_cookie
-      return unless cookies[:auth_token] && !logged_in?
-      user = <%= class_name %>.find_by_remember_token(cookies[:auth_token])
-      if user && user.remember_token?
-        user.remember_me
-        self.current_<%= file_name %> = user
-        cookies[:auth_token] = { :value => self.current_<%= file_name %>.remember_token , :expires => self.current_<%= file_name %>.remember_token_expires_at }
-        flash[:notice] = "Logged in successfully"
+    # Called from #current_user.  First attempt to login by the user id stored in the session.
+    def login_from_session
+      self.current_<%= file_name %> = <%= class_name %>.find_by_id(session[:<%= file_name %>]) if session[:<%= file_name %>]
+    end
+
+    # Called from #current_user.  Now, attempt to login by basic authentication information.
+    def login_from_basic_auth
+      username, passwd = get_auth_data
+      self.current_<%= file_name %> = <%= class_name %>.authenticate(username, passwd) if username && passwd
+    end
+
+    # Called from #current_user.  Finaly, attempt to login by an expiring token in the cookie.
+    def login_from_cookie      
+      <%= file_name %> = cookies[:auth_token] && <%= class_name %>.find_by_remember_token(cookies[:auth_token])
+      if <%= file_name %> && <%= file_name %>.remember_token?
+        <%= file_name %>.remember_me
+        cookies[:auth_token] = { :value => <%= file_name %>.remember_token, :expires => <%= file_name %>.remember_token_expires_at }
+        self.current_<%= file_name %> = <%= file_name %>
       end
     end
 

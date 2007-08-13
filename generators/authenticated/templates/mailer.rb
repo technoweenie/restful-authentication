@@ -1,4 +1,4 @@
-class <%= class_name %>Notifier < ActionMailer::Base
+class <%= class_name %>Mailer < ActionMailer::Base
   def signup_notification(<%= file_name %>)
     setup_email(<%= file_name %>)
     @subject    += 'Please activate your new account'
