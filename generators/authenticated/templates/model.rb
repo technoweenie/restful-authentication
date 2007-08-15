@@ -13,11 +13,15 @@ class <%= class_name %> < ActiveRecord::Base
   validates_uniqueness_of   :login, :email, :case_sensitive => false
   before_save :encrypt_password
   <% if options[:include_activation] %>before_create :make_activation_code <% end %>
+  # prevents a user from submitting a crafted form that bypasses activation
+  # anything else you want your user to change should be added here.
+  attr_accessible :login, :email, :password, :password_confirmation
   <% if options[:include_activation] %>
   # Activates the user in the database.
   def activate
     @activated = true
-    self.attributes = {:activated_at => Time.now.utc, :activation_code => nil}
+    self.activated_at = Time.now.utc
+    self.activation_code = nil
     save(false)
   end
 
