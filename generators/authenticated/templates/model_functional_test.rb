@@ -62,7 +62,21 @@ class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
     assert_redirected_to '/'
     assert_not_nil flash[:notice]
     assert_equal <%= table_name %>(:aaron), <%= class_name %>.authenticate('aaron', 'test')
-  end <% end %>
+  end
+  
+  def test_should_not_activate_user_without_key
+    get :activate
+    assert_nil flash[:notice]
+  rescue ActionController::RoutingError
+    # in the event your routes deny this, we'll just bow out gracefully.
+  end
+
+  def test_should_not_activate_user_with_blank_key
+    get :activate, :activation_code => ''
+    assert_nil flash[:notice]
+  rescue ActionController::RoutingError
+    # well played, sir
+  end<% end %>
 
   protected
     def create_<%= file_name %>(options = {})
