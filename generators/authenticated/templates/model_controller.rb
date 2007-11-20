@@ -8,7 +8,10 @@ class <%= model_controller_class_name %>Controller < ApplicationController
 
   def create
     cookies.delete :auth_token
-    reset_session
+    # protects against session fixation attacks, wreaks havoc with 
+    # request forgery protection.
+    # uncomment at your own risk
+    # reset_session
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
     @<%= file_name %>.save!
     self.current_<%= file_name %> = @<%= file_name %>
