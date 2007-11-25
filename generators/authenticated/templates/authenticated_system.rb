@@ -9,7 +9,7 @@ module AuthenticatedSystem
     # Accesses the current <%= file_name %> from the session.  Set it to :false if login fails
     # so that future calls do not hit the database.
     def current_<%= file_name %>
-      @current_user ||= (login_from_session || login_from_basic_auth || login_from_cookie || :false)
+      @current_<%= file_name %> ||= (login_from_session || login_from_basic_auth || login_from_cookie || :false)
     end
     
     # Store the given <%= file_name %> in the session.
