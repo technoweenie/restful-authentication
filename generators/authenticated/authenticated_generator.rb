@@ -22,6 +22,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
 
   def initialize(runtime_args, runtime_options = {})
     super
+    
+    @rspec = has_rspec?
 
     @controller_name = args.shift || 'sessions'
     @model_controller_name = @name.pluralize
@@ -64,12 +66,21 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       m.directory File.join('app/helpers', controller_class_path)
       m.directory File.join('app/views', controller_class_path, controller_file_name)
       m.directory File.join('app/views', class_path, "#{file_name}_mailer") if options[:include_activation]
-      m.directory File.join('test/functional', controller_class_path)
+
       m.directory File.join('app/controllers', model_controller_class_path)
       m.directory File.join('app/helpers', model_controller_class_path)
       m.directory File.join('app/views', model_controller_class_path, model_controller_file_name)
-      m.directory File.join('test/functional', model_controller_class_path)
-      m.directory File.join('test/unit', class_path)
+
+      if @rspec
+        m.directory File.join('spec/controllers', controller_class_path)
+        m.directory File.join('spec/controllers', model_controller_class_path)
+        m.directory File.join('spec/models', class_path)
+        m.directory File.join('spec/fixtures', class_path)
+      else
+        m.directory File.join('test/functional', controller_class_path)
+        m.directory File.join('test/functional', model_controller_class_path)
+        m.directory File.join('test/unit', class_path)
+      end
 
       m.template 'model.rb',
                   File.join('app/models',
@@ -100,15 +111,42 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       m.template 'authenticated_test_helper.rb',
                   File.join('lib', 'authenticated_test_helper.rb')
 
-      m.template 'functional_test.rb',
-                  File.join('test/functional',
-                            controller_class_path,
-                            "#{controller_file_name}_controller_test.rb")
-
-      m.template 'model_functional_test.rb',
-                  File.join('test/functional',
-                            model_controller_class_path,
-                            "#{model_controller_file_name}_controller_test.rb")
+      if @rspec
+        m.template 'functional_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "#{controller_file_name}_controller_spec.rb")
+        m.template 'model_functional_spec.rb',
+                    File.join('spec/controllers',
+                              model_controller_class_path,
+                              "#{model_controller_file_name}_controller_spec.rb")
+        m.template 'unit_spec.rb',
+                    File.join('spec/models',
+                              class_path,
+                              "#{file_name}_spec.rb")
+        m.template 'fixtures.yml',
+                    File.join('spec/fixtures',
+                              "#{table_name}.yml")
+      else
+        m.template 'functional_test.rb',
+                    File.join('test/functional',
+                              controller_class_path,
+                              "#{controller_file_name}_controller_test.rb")
+        m.template 'model_functional_test.rb',
+                    File.join('test/functional',
+                              model_controller_class_path,
+                              "#{model_controller_file_name}_controller_test.rb")
+        m.template 'unit_test.rb',
+                    File.join('test/unit',
+                              class_path,
+                              "#{file_name}_test.rb")
+        if options[:include_activation]
+          m.template 'mailer_test.rb', File.join('test/unit', class_path, "#{file_name}_mailer_test.rb")
+        end
+        m.template 'fixtures.yml',
+                    File.join('test/fixtures',
+                              "#{table_name}.yml")
+      end
 
       m.template 'helper.rb',
                   File.join('app/helpers',
@@ -120,18 +158,6 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                             model_controller_class_path,
                             "#{model_controller_file_name}_helper.rb")
 
-      m.template 'unit_test.rb',
-                  File.join('test/unit',
-                            class_path,
-                            "#{file_name}_test.rb")
-
-      if options[:include_activation]
-        m.template 'mailer_test.rb', File.join('test/unit', class_path, "#{file_name}_mailer_test.rb")
-      end
-
-      m.template 'fixtures.yml',
-                  File.join('test/fixtures',
-                            "#{table_name}.yml")
 
       # Controller templates
       m.template 'login.rhtml',  File.join('app/views', controller_class_path, controller_file_name, "new.rhtml")
@@ -201,6 +227,10 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     recorded_session
   end
 
+  def has_rspec?
+    File.exist?('spec') && File.directory?('spec')
+  end
+  
   protected
     # Override with your own usage banner.
     def banner
