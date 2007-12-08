@@ -198,8 +198,14 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
           puts
           puts "  - add an observer to config/environment.rb"
           puts "    config.active_record.observers = :#{file_name}_observer"
+          puts
         end
-        puts
+        if options[:stateful]
+          puts "Also, don't forget to install the acts_as_state_machine plugin!"
+          puts
+          puts "  svn co http://elitists.textdriven.com/svn/plugins/acts_as_state_machine/trunk vendor/plugins/acts_as_state_machine"
+          puts
+        end
         puts "Try these for some familiar login URLs if you like:"
         puts
         puts "  map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new'"
@@ -228,7 +234,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   end
 
   def has_rspec?
-    File.exist?('spec') && File.directory?('spec')
+    options[:rspec] || (File.exist?('spec') && File.directory?('spec'))
   end
   
   protected
@@ -243,6 +249,10 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       opt.on("--skip-migration", 
              "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
       opt.on("--include-activation", 
-             "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = v }
+             "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
+      opt.on("--stateful", 
+             "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
+      opt.on("--rspec",
+             "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
     end
 end

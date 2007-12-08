@@ -93,9 +93,41 @@ class <%= class_name %>Test < Test::Unit::TestCase
     assert_not_nil <%= table_name %>(:quentin).remember_token_expires_at
     assert <%= table_name %>(:quentin).remember_token_expires_at.between?(before, after)
   end
+<% if options[:stateful] %>
+  def test_should_register_passive_<%= file_name %>
+    <%= file_name %> = create_<%= file_name %>(:password => nil, :password_confirmation => nil)
+    assert <%= file_name %>.passive?
+    <%= file_name %>.update_attributes(:password => 'new password', :password_confirmation => 'new password')
+    <%= file_name %>.register!
+    assert <%= file_name %>.pending?
+  end
 
-  protected
-    def create_<%= file_name %>(options = {})
-      <%= class_name %>.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
-    end
+  def test_should_suspend_<%= file_name %>
+    <%= table_name %>(:quentin).suspend!
+    assert <%= table_name %>(:quentin).suspended?
+  end
+
+  def test_suspended_<%= file_name %>_should_not_authenticate
+    <%= table_name %>(:quentin).suspend!
+    assert_not_equal <%= table_name %>(:quentin), <%= class_name %>.authenticate('quentin', 'test')
+  end
+
+  def test_should_unsuspend_<%= file_name %>
+    <%= table_name %>(:quentin).suspend!
+    assert <%= table_name %>(:quentin).suspended?
+    <%= table_name %>(:quentin).unsuspend!
+    assert <%= table_name %>(:quentin).active?
+  end
+
+  def test_should_delete_<%= file_name %>
+    assert_nil <%= table_name %>(:quentin).deleted_at
+    <%= table_name %>(:quentin).delete!
+    assert_not_nil <%= table_name %>(:quentin).deleted_at
+    assert <%= table_name %>(:quentin).deleted?
+  end
+<% end %>
+protected
+  def create_<%= file_name %>(options = {})
+    <%= class_name %>.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
+  end
 end

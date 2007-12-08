@@ -7,49 +7,49 @@ include AuthenticatedTestHelper
 describe <%= controller_class_name %>Controller do
   fixtures :<%= table_name %>
 
-  it 'should login and redirect' do
+  it 'logins and redirects' do
     post :create, :login => 'quentin', :password => 'test'
     session[:<%= file_name %>].should_not be_nil
     response.should be_redirect
   end
   
-  it 'should fail login and not redirect' do
+  it 'fails login and does not redirect' do
     post :create, :login => 'quentin', :password => 'bad password'
     session[:<%= file_name %>].should be_nil
     response.should be_success
   end
 
-  it 'should logout' do
+  it 'logs out' do
     login_as :quentin
     get :destroy
     session[:<%= file_name %>].should be_nil
     response.should be_redirect
   end
 
-  it 'should remember me' do
+  it 'remembers me' do
     post :create, :login => 'quentin', :password => 'test', :remember_me => "1"
     response.cookies["auth_token"].should_not be_nil
   end
   
-  it 'should not remember me' do
+  it 'does not remember me' do
     post :create, :login => 'quentin', :password => 'test', :remember_me => "0"
     response.cookies["auth_token"].should be_nil
   end
 
-  it 'should delete token on logout' do
+  it 'deletes token on logout' do
     login_as :quentin
     get :destroy
     response.cookies["auth_token"].should == []
   end
 
-  it 'should login with cookie' do
+  it 'logs in with cookie' do
     <%= table_name %>(:quentin).remember_me
     request.cookies["auth_token"] = cookie_for(:quentin)
     get :new
     controller.send(:logged_in?).should be_true
   end
   
-  it 'should fail expired cookie login' do
+  it 'fails expired cookie login' do
     <%= table_name %>(:quentin).remember_me
     <%= table_name %>(:quentin).update_attribute :remember_token_expires_at, 5.minutes.ago
     request.cookies["auth_token"] = cookie_for(:quentin)
@@ -57,7 +57,7 @@ describe <%= controller_class_name %>Controller do
     controller.send(:logged_in?).should_not be_true
   end
   
-  it 'should fail cookie login' do
+  it 'fails cookie login' do
     <%= table_name %>(:quentin).remember_me
     request.cookies["auth_token"] = auth_token('invalid_auth_token')
     get :new
