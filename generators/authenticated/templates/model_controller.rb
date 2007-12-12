@@ -18,7 +18,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     # uncomment at your own risk
     # reset_session
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
-<% if options[:stateful] %>    raise ActiveRecord::RecordInvalid.new(@user) unless @user.valid?<% end %>
+<% if options[:stateful] %>    raise ActiveRecord::RecordInvalid.new(@<%= file_name %>) unless @<%= file_name %>.valid?<% end %>
     @<%= file_name %>.<% if options[:stateful] %>register<% else %>save<% end %>!
     self.current_<%= file_name %> = @<%= file_name %>
     redirect_back_or_default('/')
@@ -37,28 +37,28 @@ class <%= model_controller_class_name %>Controller < ApplicationController
   end
 <% end %><% if options[:stateful] %>
   def suspend
-    @user.suspend! 
-    redirect_to users_url
+    @<%= file_name %>.suspend! 
+    redirect_to <%= table_name %>_path
   end
 
   def unsuspend
-    @user.unsuspend! 
-    redirect_to users_url
+    @<%= file_name %>.unsuspend! 
+    redirect_to <%= table_name %>_path
   end
 
   def destroy
-    @user.delete!
-    redirect_to users_url
+    @<%= file_name %>.delete!
+    redirect_to <%= table_name %>_path
   end
 
   def purge
-    @user.destroy
-    redirect_to users_url
+    @<%= file_name %>.destroy
+    redirect_to <%= table_name %>_path
   end
 
 protected
   def find_<%= file_name %>
-    @<%= file_name %> = User.find(params[:id])
+    @<%= file_name %> = <%= class_name %>.find(params[:id])
   end
 <% end %>
 end
