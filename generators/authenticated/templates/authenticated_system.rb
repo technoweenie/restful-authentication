@@ -1,23 +1,23 @@
 module AuthenticatedSystem
   protected
-    # Returns true or false if the user is logged in.
-    # Preloads @current_<%= file_name %> with the user model if they're logged in.
+    # Returns true or false if the <%= file_name %> is logged in.
+    # Preloads @current_<%= file_name %> with the <%= file_name %> model if they're logged in.
     def logged_in?
       current_<%= file_name %> != :false
     end
-    
+
     # Accesses the current <%= file_name %> from the session.  Set it to :false if login fails
     # so that future calls do not hit the database.
     def current_<%= file_name %>
       @current_<%= file_name %> ||= (login_from_session || login_from_basic_auth || login_from_cookie || :false)
     end
-    
-    # Store the given <%= file_name %> in the session.
+
+    # Store the given <%= file_name %> id in the session.
     def current_<%= file_name %>=(new_<%= file_name %>)
-      session[:<%= file_name %>] = (new_<%= file_name %>.nil? || new_<%= file_name %>.is_a?(Symbol)) ? nil : new_<%= file_name %>.id
-      @current_<%= file_name %> = new_<%= file_name %>
+      session[:<%= file_name %>_id] = (new_<%= file_name %>.nil? || new_<%= file_name %>.is_a?(Symbol)) ? nil : new_<%= file_name %>.id
+      @current_<%= file_name %> = new_<%= file_name %> || :false
     end
-    
+
     # Check if the <%= file_name %> is authorized
     #
     # Override this method in your controllers if you want to restrict access
@@ -61,68 +61,56 @@ module AuthenticatedSystem
     # to access the requested action.  For example, a popup window might
     # simply close itself.
     def access_denied
-      respond_to do |accepts|
-        accepts.html do
+      respond_to do |format|
+        format.html do
           store_location
           redirect_to :controller => '/<%= controller_file_name %>', :action => 'new'
         end
-        accepts.xml do
-          headers["Status"]           = "Unauthorized"
-          headers["WWW-Authenticate"] = %(Basic realm="Web Password")
-          render :text => "Could't authenticate you", :status => '401 Unauthorized'
+        format.xml do
+          request_http_basic_authentication 'Web Password'
         end
       end
-      false
-    end  
-    
+    end
+
     # Store the URI of the current request in the session.
     #
     # We can return to this location by calling #redirect_back_or_default.
     def store_location
       session[:return_to] = request.request_uri
     end
-    
+
     # Redirect to the URI stored by the most recent store_location call or
     # to the passed default.
     def redirect_back_or_default(default)
       redirect_to(session[:return_to] || default)
       session[:return_to] = nil
     end
-    
+
     # Inclusion hook to make #current_<%= file_name %> and #logged_in?
     # available as ActionView helper methods.
     def self.included(base)
       base.send :helper_method, :current_<%= file_name %>, :logged_in?
     end
 
-    # Called from #current_user.  First attempt to login by the user id stored in the session.
+    # Called from #current_<%= file_name %>.  First attempt to login by the <%= file_name %> id stored in the session.
     def login_from_session
-      self.current_<%= file_name %> = <%= class_name %>.find_by_id(session[:<%= file_name %>]) if session[:<%= file_name %>]
+      self.current_<%= file_name %> = <%= class_name %>.find(session[:<%= file_name %>_id]) if session[:<%= file_name %>_id]
     end
 
-    # Called from #current_user.  Now, attempt to login by basic authentication information.
+    # Called from #current_<%= file_name %>.  Now, attempt to login by basic authentication information.
     def login_from_basic_auth
-      username, passwd = get_auth_data
-      self.current_<%= file_name %> = <%= class_name %>.authenticate(username, passwd) if username && passwd
+      authenticate_with_http_basic do |username, password|
+        self.current_<%= file_name %> = <%= class_name %>.authenticate(username, password)
+      end
     end
 
-    # Called from #current_user.  Finaly, attempt to login by an expiring token in the cookie.
-    def login_from_cookie      
+    # Called from #current_<%= file_name %>.  Finaly, attempt to login by an expiring token in the cookie.
+    def login_from_cookie
       <%= file_name %> = cookies[:auth_token] && <%= class_name %>.find_by_remember_token(cookies[:auth_token])
       if <%= file_name %> && <%= file_name %>.remember_token?
         <%= file_name %>.remember_me
         cookies[:auth_token] = { :value => <%= file_name %>.remember_token, :expires => <%= file_name %>.remember_token_expires_at }
         self.current_<%= file_name %> = <%= file_name %>
       end
-    end
-
-  private
-    @@http_auth_headers = %w(Authorization HTTP_AUTHORIZATION X-HTTP_AUTHORIZATION X_HTTP_AUTHORIZATION REDIRECT_X_HTTP_AUTHORIZATION)
-
-    # gets BASIC auth info
-    def get_auth_data
-      auth_key  = @@http_auth_headers.detect { |h| request.env.has_key?(h) }
-      auth_data = request.env[auth_key].to_s.split unless auth_key.blank?
-      return auth_data && auth_data[0] == 'Basic' ? Base64.decode64(auth_data[1]).split(':')[0..1] : [nil, nil] 
     end
 end
