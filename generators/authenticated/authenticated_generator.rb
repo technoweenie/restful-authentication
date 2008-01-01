@@ -1,4 +1,8 @@
+require 'restful_authentication/rails_commands'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
+  default_options :skip_migration => false,
+                  :include_activation => false
+                  
   attr_reader   :controller_name,
                 :controller_class_path,
                 :controller_file_path,
@@ -160,14 +164,14 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
 
 
       # Controller templates
-      m.template 'login.rhtml',  File.join('app/views', controller_class_path, controller_file_name, "new.rhtml")
-      m.template 'signup.rhtml', File.join('app/views', model_controller_class_path, model_controller_file_name, "new.rhtml")
+      m.template 'login.html.erb',  File.join('app/views', controller_class_path, controller_file_name, "new.html.erb")
+      m.template 'signup.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "new.html.erb")
 
       if options[:include_activation]
         # Mailer templates
         %w( activation signup_notification ).each do |action|
-          m.template "#{action}.rhtml",
-                     File.join('app/views', "#{file_name}_mailer", "#{action}.rhtml")
+          m.template "#{action}.html.erb",
+                     File.join('app/views', "#{file_name}_mailer", "#{action}.html.erb")
         end
       end
 
@@ -176,6 +180,9 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
           :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
+      
+      m.route_resource  controller_singular_name
+      m.route_resources model_controller_plural_name
     end
 
     action = nil
@@ -185,13 +192,6 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts
         puts ("-" * 70)
         puts "Don't forget to:"
-        puts
-        puts "  - add restful routes in config/routes.rb"
-        puts "    map.resources :#{model_controller_file_name}"
-        puts "    map.resource  :#{controller_singular_name.singularize}"
-        puts
-        puts " Rails 1.2.3 may need a :controller option for the singular resource:"
-        puts "  - map.resource :#{controller_singular_name.singularize}, :controller => '#{controller_file_name}'"
         puts
         if options[:include_activation]
           puts "    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate'"
