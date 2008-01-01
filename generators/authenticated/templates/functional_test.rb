@@ -19,20 +19,20 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
 
   def test_should_login_and_redirect
     post :create, :login => 'quentin', :password => 'test'
-    assert session[:<%= file_name %>]
+    assert session[:<%= file_name %>_id]
     assert_response :redirect
   end
 
   def test_should_fail_login_and_not_redirect
     post :create, :login => 'quentin', :password => 'bad password'
-    assert_nil session[:<%= file_name %>]
+    assert_nil session[:<%= file_name %>_id]
     assert_response :success
   end
 
   def test_should_logout
     login_as :quentin
     get :destroy
-    assert_nil session[:<%= file_name %>]
+    assert_nil session[:<%= file_name %>_id]
     assert_response :redirect
   end
 
