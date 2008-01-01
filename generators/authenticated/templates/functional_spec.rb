@@ -9,20 +9,20 @@ describe <%= controller_class_name %>Controller do
 
   it 'logins and redirects' do
     post :create, :login => 'quentin', :password => 'test'
-    session[:<%= file_name %>].should_not be_nil
+    session[:<%= file_name %>_id].should_not be_nil
     response.should be_redirect
   end
   
   it 'fails login and does not redirect' do
     post :create, :login => 'quentin', :password => 'bad password'
-    session[:<%= file_name %>].should be_nil
+    session[:<%= file_name %>_id].should be_nil
     response.should be_success
   end
 
   it 'logs out' do
     login_as :quentin
     get :destroy
-    session[:<%= file_name %>].should be_nil
+    session[:<%= file_name %>_id].should be_nil
     response.should be_redirect
   end
 
