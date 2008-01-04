@@ -22,7 +22,7 @@ the controller that handles the actual login/logout function on the
 site.
 
 The third parameter (--include-activation) generates the code for a 
-ActionMailer and its respective Activation Code through email.
+Mailer and the required support code.  Don't forget to setup your mailer for this.
 
 ===  Currently supported ORMs
 Active Record
