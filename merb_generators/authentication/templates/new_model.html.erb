@@ -1,0 +1,18 @@
+<%%= error_messages_for @user %>
+<%% form_for @user, :action => url(:users) do %>
+  <p>
+    <%%= text_control :login, :label => "Login" %>
+  </p>
+  <p>
+    <%%= text_control :email, :label => "Email" %>
+  </p>
+  <p>
+    <%%= password_control :password, :label => "Password" %>
+  </p>
+  <p>
+    <%%= password_control :password_confirmation, :label => "Password Confirmation" %>
+  </p>
+  <p>
+    <%%= submit_button "Sign up" %>
+  </p>
+<%% end %>
