@@ -18,8 +18,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     # uncomment at your own risk
     # reset_session
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
-<% if options[:stateful] %>    raise ActiveRecord::RecordInvalid.new(@<%= file_name %>) unless @<%= file_name %>.valid?<% end %>
-    @<%= file_name %>.<% if options[:stateful] %>register<% else %>save<% end %>!
+    @<%= file_name %>.save!
     self.current_<%= file_name %> = @<%= file_name %>
     redirect_back_or_default('/')
     flash[:notice] = "Thanks for signing up!"
