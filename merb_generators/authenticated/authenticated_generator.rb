@@ -1,5 +1,5 @@
 require 'merb'
-class AuthenticationGenerator < RubiGen::Base
+class AuthenticatedGenerator < RubiGen::Base
   
   default_options :author => nil
   
@@ -75,6 +75,20 @@ class AuthenticationGenerator < RubiGen::Base
       m.class_collisions class_path,                  "#{class_name}", "#{class_name}Mailer"# , "#{class_name}MailerTest", "#{class_name}Observer"
       m.class_collisions [], 'AuthenticatedSystem::Controller', 'AuthenticatedSystem::Model'
 
+      # Generate the model first.  These can then throw an error when generating if there is no ORM present
+      model_attributes = { 
+        :class_name           => class_name,
+        :class_path           => class_path, 
+        :file_name            => file_name, 
+        :class_nesting        => class_nesting, 
+        :class_nesting_depth  => class_nesting_depth, 
+        :plural_name          => plural_name, 
+        :singular_name        => singular_name,
+        :include_activation   => options[:include_activation]     
+      }
+      m.dependency "merbful_authentication_model", [name], model_attributes
+
+
       # Controller, helper, views, and test directories.
       
       m.directory File.join('app/controllers', controller_class_path)
@@ -106,19 +120,6 @@ class AuthenticationGenerator < RubiGen::Base
         end
       end
       
-      # Generate the model
-      model_attributes = { 
-        :class_name           => class_name,
-        :class_path           => class_path, 
-        :file_name            => file_name, 
-        :class_nesting        => class_nesting, 
-        :class_nesting_depth  => class_nesting_depth, 
-        :plural_name          => plural_name, 
-        :singular_name        => singular_name,
-        :include_activation   => options[:include_activation]     
-      }
-      m.dependency "merbful_authentication_model", [name], model_attributes 
-
       # Generate the sessions controller
       m.template "session_controller.rb", File.join('app/controllers', 
                                                     controller_class_path, 

@@ -1,0 +1,7 @@
+7th January 2008---------------------------------------------------
+Added generator blanks for merb_default and sequel scopes to gracefully error and stop the generators
+
+Changes the generator name from "authentication" to "authenticated" to match restful_authentication
+
+Made dependency on merb 0.5.0 or greater
+
