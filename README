@@ -2,8 +2,7 @@ Restful Authentication Generator
 ====
 
 This is a basic restful authentication generator for rails, taken 
-from acts as authenticated.  Currently it requires Rails 1.2 (or 
-edge).
+from acts as authenticated.  Currently it requires Rails 1.2.6 or above.
 
 To use:
 
@@ -29,22 +28,11 @@ http://www.vaporbase.com/postings/stateful_authentication
 
 You can pass --skip-migration to skip the user migration.
 
-From here, you will need to add the resource routes in 
-config/routes.rb.  
-
-  map.resources :users
-  map.resource  :session
-
 If you're using acts_as_state_machine, define your users resource like this:
 
 	map.resources :users, :member => { :suspend   => :put,
                                      :unsuspend => :put,
                                      :purge     => :delete }
-
-If you're on rails 1.2.3 you may need to specify the controller name
-for the session singular resource:
-
-  map.resource :session, :controller => 'sessions'
 
 Also, add an observer to config/environment.rb if you chose the 
 --include-activation option
