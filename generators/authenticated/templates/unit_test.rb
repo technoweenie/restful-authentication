@@ -15,7 +15,7 @@ class <%= class_name %>Test < Test::Unit::TestCase
 <% if options[:include_activation] %>
   def test_should_initialize_activation_code_upon_creation
     <%= file_name %> = create_<%= file_name %>
-    assert_not_nil <%= file_name %>.activation_code
+    assert_not_nil <%= file_name %>.reload.activation_code
   end
 <% end %><% if options[:stateful] %>
   def test_should_create_and_start_in_pending_state

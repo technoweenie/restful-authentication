@@ -22,7 +22,7 @@ describe <%= class_name %> do
 <% if options[:include_activation] %>
     it 'initializes #activation_code' do
       @creating_<%= file_name %>.call
-      @<%= file_name %>.activation_code.should_not be_nil
+      @<%= file_name %>.reload.activation_code.should_not be_nil
     end
 <% end %><% if options[:stateful] %>
     it 'starts in pending state' do
@@ -165,6 +165,8 @@ describe <%= class_name %> do
 <% end %>
 protected
   def create_<%= file_name %>(options = {})
-    <%= class_name %>.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
+    record = <%= class_name %>.new({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
+    record.<% if options[:stateful] %>register! if record.valid?<% else %>save<% end %>
+    record
   end
 end
