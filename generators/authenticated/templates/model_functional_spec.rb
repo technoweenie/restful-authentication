@@ -14,6 +14,18 @@ describe <%= model_controller_class_name %>Controller do
     end.should change(<%= class_name %>, :count).by(1)
   end
 
+  <% if options[:stateful] %>
+  it 'signs up user in pending state' do
+    create_user
+    assigns(:user).should be_pending
+  end<% end %>
+
+  <% if options[:include_activation] %>
+  it 'signs up user with activation code' do
+    create_user
+    assigns(:user).activation_code.should_not be_nil
+  end<% end %>
+
   it 'requires login on signup' do
     lambda do
       create_<%= file_name %>(:login => nil)
@@ -56,13 +68,13 @@ describe <%= model_controller_class_name %>Controller do
   end
   
   it 'does not activate user without key' do
-      get :activate
-      flash[:notice].should be_nil
+    get :activate
+    flash[:notice].should be_nil
   end
   
   it 'does not activate user with blank key' do
-      get :activate, :activation_code => ''
-      flash[:notice].should be_nil
+    get :activate, :activation_code => ''
+    flash[:notice].should be_nil
   end<% end %>
   
   def create_<%= file_name %>(options = {})
