@@ -66,7 +66,7 @@ module AuthenticatedSystem
           store_location
           redirect_to new_<%= controller_singular_name %>_path
         end
-        format.xml do
+        format.any do
           request_http_basic_authentication 'Web Password'
         end
       end
