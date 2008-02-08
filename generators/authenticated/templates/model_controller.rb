@@ -18,7 +18,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     # uncomment at your own risk
     # reset_session
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
-    @<%= file_name %>.<% if options[:stateful] %>register! if record.valid?<% else %>save<% end %>
+    @<%= file_name %>.<% if options[:stateful] %>register! if @<%= file_name %>.valid?<% else %>save<% end %>
     if @<%= file_name %>.errors.empty?
       self.current_<%= file_name %> = @<%= file_name %>
       redirect_back_or_default('/')
