@@ -94,7 +94,7 @@ module AuthenticatedSystem
 
     # Called from #current_<%= file_name %>.  First attempt to login by the <%= file_name %> id stored in the session.
     def login_from_session
-      self.current_<%= file_name %> = <%= class_name %>.find(session[:<%= file_name %>_id]) if session[:<%= file_name %>_id]
+      self.current_<%= file_name %> = <%= class_name %>.find_by_id(session[:<%= file_name %>_id]) if session[:<%= file_name %>_id]
     end
 
     # Called from #current_<%= file_name %>.  Now, attempt to login by basic authentication information.
