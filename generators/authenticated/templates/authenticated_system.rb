@@ -14,8 +14,8 @@ module AuthenticatedSystem
 
     # Store the given <%= file_name %> id in the session.
     def current_<%= file_name %>=(new_<%= file_name %>)
-      session[:<%= file_name %>_id] = (new_<%= file_name %>.nil? || new_<%= file_name %>.is_a?(Symbol)) ? nil : new_<%= file_name %>.id
-      @current_<%= file_name %> = new_<%= file_name %> || :false
+      session[:<%= file_name %>_id] = !new_<%= file_name %> ? nil : new_<%= file_name %>.id
+      @current_<%= file_name %> = new_<%= file_name %>
     end
 
     # Check if the <%= file_name %> is authorized
