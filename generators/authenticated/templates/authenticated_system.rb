@@ -3,13 +3,13 @@ module AuthenticatedSystem
     # Returns true or false if the <%= file_name %> is logged in.
     # Preloads @current_<%= file_name %> with the <%= file_name %> model if they're logged in.
     def logged_in?
-      current_<%= file_name %> != :false
+      current_<%= file_name %>
     end
 
-    # Accesses the current <%= file_name %> from the session.  Set it to :false if login fails
-    # so that future calls do not hit the database.
+    # Accesses the current <%= file_name %> from the session. 
+    # Future calls avoid the database because nil is not equal to false.
     def current_<%= file_name %>
-      @current_<%= file_name %> ||= (login_from_session || login_from_basic_auth || login_from_cookie || :false)
+      @current_<%= file_name %> ||= (login_from_session || login_from_basic_auth || login_from_cookie) unless @current_user == false
     end
 
     # Store the given <%= file_name %> id in the session.
