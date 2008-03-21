@@ -58,11 +58,6 @@ class <%= class_name %> < ActiveRecord::Base
     # the existence of an activation code means they have not activated yet
     activation_code.nil?
   end
-
-  # Returns true if the user has just been activated.
-  def pending?
-    @activated
-  end
 <% end %>
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
@@ -113,6 +108,11 @@ class <%= class_name %> < ActiveRecord::Base
     save(false)
   end
 
+  # Returns true if the user has just been activated.
+  def recently_activated?
+    @activated
+  end
+
   protected
     # before filter 
     def encrypt_password
@@ -135,6 +135,7 @@ class <%= class_name %> < ActiveRecord::Base
     end
 
     def do_activate
+      @activated = true
       self.activated_at = Time.now.utc
       self.deleted_at = self.activation_code = nil
     end<% end %>
