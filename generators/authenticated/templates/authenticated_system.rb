@@ -108,7 +108,6 @@ module AuthenticatedSystem
     def login_from_cookie
       <%= file_name %> = cookies[:auth_token] && <%= class_name %>.find_by_remember_token(cookies[:auth_token])
       if <%= file_name %> && <%= file_name %>.remember_token?
-        <%= file_name %>.remember_me
         cookies[:auth_token] = { :value => <%= file_name %>.remember_token, :expires => <%= file_name %>.remember_token_expires_at }
         self.current_<%= file_name %> = <%= file_name %>
       end
