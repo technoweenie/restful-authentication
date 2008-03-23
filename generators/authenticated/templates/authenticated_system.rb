@@ -3,7 +3,7 @@ module AuthenticatedSystem
     # Returns true or false if the <%= file_name %> is logged in.
     # Preloads @current_<%= file_name %> with the <%= file_name %> model if they're logged in.
     def logged_in?
-      current_<%= file_name %>
+      !!current_<%= file_name %>
     end
 
     # Accesses the current <%= file_name %> from the session. 
