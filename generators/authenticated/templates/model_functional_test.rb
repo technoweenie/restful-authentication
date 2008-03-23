@@ -55,7 +55,20 @@ class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
       assert_response :success
     end
   end
+  <% if options[:stateful] %>
+  def test_should_sign_up_user_in_pending_state
+    create_<%= file_name %>
+    assigns(:<%= file_name %>).reload
+    assert assigns(:<%= file_name %>).pending?
+  end<% end %>
+
   <% if options[:include_activation] %>
+  def test_should_sign_up_user_with_activation_code
+    create_<%= file_name %>
+    assigns(:<%= file_name %>).reload
+    assert_not_nil assigns(:<%= file_name %>).activation_code
+  end
+
   def test_should_activate_user
     assert_nil <%= class_name %>.authenticate('aaron', 'test')
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code

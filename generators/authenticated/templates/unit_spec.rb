@@ -22,12 +22,13 @@ describe <%= class_name %> do
 <% if options[:include_activation] %>
     it 'initializes #activation_code' do
       @creating_<%= file_name %>.call
-      @<%= file_name %>.should be_pending
+      @<%= file_name %>.reload
       @<%= file_name %>.activation_code.should_not be_nil
     end
 <% end %><% if options[:stateful] %>
     it 'starts in pending state' do
       @creating_<%= file_name %>.call
+      @<%= file_name %>.reload
       @<%= file_name %>.should be_pending
     end
 <% end %>  end

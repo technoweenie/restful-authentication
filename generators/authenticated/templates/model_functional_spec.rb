@@ -10,20 +10,22 @@ describe <%= model_controller_class_name %>Controller do
   it 'allows signup' do
     lambda do
       create_<%= file_name %>
-      response.should be_redirect      
+      response.should be_redirect
     end.should change(<%= class_name %>, :count).by(1)
   end
 
   <% if options[:stateful] %>
   it 'signs up user in pending state' do
     create_user
-    assigns(:user).should be_pending
+    assigns(:<%= file_name %>).reload
+    assigns(:<%= file_name %>).should be_pending
   end<% end %>
 
   <% if options[:include_activation] %>
   it 'signs up user with activation code' do
     create_user
-    assigns(:user).activation_code.should_not be_nil
+    assigns(:<%= file_name %>).reload
+    assigns(:<%= file_name %>).activation_code.should_not be_nil
   end<% end %>
 
   it 'requires login on signup' do
