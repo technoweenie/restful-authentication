@@ -14,20 +14,20 @@ describe <%= model_controller_class_name %>Controller do
     end.should change(<%= class_name %>, :count).by(1)
   end
 
-  <% if options[:stateful] %>
+  <%- if options[:stateful] -%>
   it 'signs up user in pending state' do
     create_user
     assigns(:<%= file_name %>).reload
     assigns(:<%= file_name %>).should be_pending
-  end<% end %>
-
-  <% if options[:include_activation] %>
+  end
+<% end %>
+  <%- if options[:include_activation] -%>
   it 'signs up user with activation code' do
     create_user
     assigns(:<%= file_name %>).reload
     assigns(:<%= file_name %>).activation_code.should_not be_nil
-  end<% end %>
-
+  end
+<% end %>
   it 'requires login on signup' do
     lambda do
       create_<%= file_name %>(:login => nil)
@@ -35,7 +35,7 @@ describe <%= model_controller_class_name %>Controller do
       response.should be_success
     end.should_not change(<%= class_name %>, :count)
   end
-  
+
   it 'requires password on signup' do
     lambda do
       create_<%= file_name %>(:password => nil)
@@ -43,7 +43,7 @@ describe <%= model_controller_class_name %>Controller do
       response.should be_success
     end.should_not change(<%= class_name %>, :count)
   end
-  
+
   it 'requires password confirmation on signup' do
     lambda do
       create_<%= file_name %>(:password_confirmation => nil)
@@ -59,8 +59,8 @@ describe <%= model_controller_class_name %>Controller do
       response.should be_success
     end.should_not change(<%= class_name %>, :count)
   end
-  
-  <% if options[:include_activation] %>
+
+  <%- if options[:include_activation] -%>
   it 'activates user' do
     <%= class_name %>.authenticate('aaron', 'test').should be_nil
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code
@@ -68,17 +68,17 @@ describe <%= model_controller_class_name %>Controller do
     flash[:notice].should_not be_nil
     <%= class_name %>.authenticate('aaron', 'test').should == <%= table_name %>(:aaron)
   end
-  
+
   it 'does not activate user without key' do
     get :activate
     flash[:notice].should be_nil
   end
-  
+
   it 'does not activate user with blank key' do
     get :activate, :activation_code => ''
     flash[:notice].should be_nil
-  end<% end %>
-  
+  end
+<% end %>
   def create_<%= file_name %>(options = {})
     post :create, :<%= file_name %> => { :login => 'quire', :email => 'quire@example.com',
       :password => 'quire', :password_confirmation => 'quire' }.merge(options)
