@@ -6,6 +6,22 @@ include AuthenticatedTestHelper
 
 describe <%= controller_class_name %>Controller do
   fixtures :<%= table_name %>
+  
+  describe 'When logged in' do 
+    before do
+      @<%= file_name %> = login_as(:quentin)
+    end
+    
+    it "should be authorized?" do
+      authorized?().should be_true      
+    end
+  end
+
+  describe 'When logged out' do 
+    it "should not be authorized?" do
+      authorized?().should be_false
+    end
+  end
 
   it 'logins and redirects' do
     post :create, :login => 'quentin', :password => 'test'
