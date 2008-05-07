@@ -89,7 +89,7 @@ module AuthenticatedSystem
     # Inclusion hook to make #current_<%= file_name %> and #logged_in?
     # available as ActionView helper methods.
     def self.included(base)
-      base.send :helper_method, :current_<%= file_name %>, :logged_in?
+      base.send :helper_method, :current_<%= file_name %>, :logged_in?, :authorized? if base.respond_to? :helper_method
     end
 
     # Called from #current_<%= file_name %>.  First attempt to login by the <%= file_name %> id stored in the session.
