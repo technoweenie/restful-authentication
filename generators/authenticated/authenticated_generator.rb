@@ -80,6 +80,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.directory File.join('spec/controllers', controller_class_path)
         m.directory File.join('spec/controllers', model_controller_class_path)
         m.directory File.join('spec/models', class_path)
+        m.directory File.join('spec/helpers', model_controller_class_path)
         m.directory File.join('spec/fixtures', class_path)
       else
         m.directory File.join('test/functional', controller_class_path)
@@ -125,6 +126,10 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                     File.join('spec/controllers',
                               model_controller_class_path,
                               "#{model_controller_file_name}_controller_spec.rb")
+        m.template 'model_helper_spec.rb',
+                    File.join('spec/helpers',
+                              model_controller_class_path,
+                              "#{table_name}_helper_spec.rb")
         m.template 'unit_spec.rb',
                     File.join('spec/models',
                               class_path,
