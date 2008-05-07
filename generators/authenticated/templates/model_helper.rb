@@ -11,7 +11,7 @@ module <%= model_controller_class_name %>Helper
   # * :content_method => :<%= file_name %>_instance_method_to_call_for_content_text
   #   For instance, you may define a <%= class_name %>#name_or_login method, returning a
   #   user's full name if given, their login otherwise.  In that case you 
-  #   could call <%= link_to_<%= file_name %> <%= file_name %>, :content_method => :name_or_login
+  #   could call <%%= link_to_<%= file_name %> <%= file_name %>, :content_method => :name_or_login %>
   #  
   # * :title_method => :<%= file_name %>_instance_method_to_call_for_title_attribute 
   #   Same as :content_method, but used to generate the tag's :title attribute
