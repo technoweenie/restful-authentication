@@ -67,7 +67,7 @@ describe <%= controller_class_name %>Controller do
   
   it 'fails expired cookie login' do
     <%= table_name %>(:quentin).remember_me
-    <%= table_name %>(:quentin).update_attribute :remember_token_expires_at, 5.minutes.ago
+    <%= table_name %>(:quentin).update_attribute :remember_token_expires_at, 5.minutes.ago.utc
     request.cookies["auth_token"] = cookie_for(:quentin)
     get :new
     controller.send(:logged_in?).should_not be_true
