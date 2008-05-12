@@ -85,6 +85,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.directory File.join('test/functional', controller_class_path)
         m.directory File.join('test/functional', model_controller_class_path)
         m.directory File.join('test/unit', class_path)
+        m.directory File.join('test/fixtures', class_path)
       end
 
       m.template 'model.rb',
