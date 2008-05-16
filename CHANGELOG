@@ -20,6 +20,9 @@ h2. Changes to session_controller
 
 h3. Changes to users_controller
 
+* made the implicit login only happen for non-activationed sites
+* made logout / session_reset'ing uniform across controllers
+* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
 * use uniform logout function
 * more descriptive error messages in activate()
 * don't auto-login on activate.  If the plugin is going to, there needs to be a
@@ -32,9 +35,21 @@ h3. users_helper
 * if_authorized(action, resource, &block) view function (with appropriate
   warning)
 
-h2. Changes to model
+h3. authenticated_system
 
-h3. Token generation
+* Made authorized? take optional arguments action=nil, resource=nil, *args
+  This makes its signature better match traditional approaches to access control
+  eg Reference Monitor in \"Security Patterns\":http://www.securitypatterns.org/patterns.html)
+* authorized? should be a helper too
+* added uniform logout! methods
+* format.any (as found in access_denied) doesn't work until
+  http://dev.rubyonrails.org/changeset/8987 lands.
+* cookies, just like session tokens, should be refreshed each time we cross the
+  logged out/in barrier http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
+  
+h3. Changes to model
+
+h4. Token generation
 
 The salt and the remember_token should be generated from completely
 unpredictable, irreversible input.  Using the user's email and Time.now leave
@@ -43,7 +58,7 @@ captured) log in with 'remember me', then replaying the hash of their email and
 times +/- a few seconds.  I made salt, activation_code and remember_token calls
 all use the same call, and I increased the entropy of that call.
 
-h3. Token regeneration
+h4. Token regeneration
 
 The session and the remember_token should both be expired and regenerated
 every time we cross the logged out / logged in barrier by either password
@@ -52,7 +67,7 @@ and brute force attacks, the HTTP server can seamlessly expire and
 regenerate tokens. This decreases the window of opportunity for a replay or
 brute force attack.)
 
-h3. Session resetting
+h4. Session resetting
 
 I moved the reset_session call in the session controller (and the
 users_controller on signup) into the 'success' path -- the CSRF can't do
@@ -63,13 +78,6 @@ commented out.
 
 I'd like to get the advice of someone who understands CSRF better than I on this
 change.
-
-h3. Minor changes
-
-user.rb and users_controller.rb:
-* made the implicit login only happen for non-activationed sites
-* making logout / session_reset'ing uniform across controllers
-* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
 
 
 git ci -m "Backported changes to model and model_controller:
