@@ -1,6 +1,30 @@
+
+!!! note to self -- look for .utc ' ing of times.  !!!
+
+
 I've made a few security changes based on best practices recommended in
 * "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
 * "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
+
+h2. Changes to session_controller
+
+* use uniform logout function
+* avoid calling logged_in? which will auto-log-you-in (safe in the face of
+  logout! call, but idiot-proof
+* log in is where reset_session is really needed -- wherever it goes, it has to
+  be in front of the current_user= call
+* using uniform remember_cookie functions
+* made a place to take action on failed login attempt
+* recycle login and remember_me setting on failed login
+* nil'ed out the password field in 'new' view
+
+h3. users_helper
+
+* link_to_user, link_to_current_user, link_to_signin_with_IP convenience
+  functions
+* if_authorized(action, resource, &block) view function (with appropriate
+  warning)
+
 
 h2. Changes to model
 
@@ -22,9 +46,6 @@ and brute force attacks, the HTTP server can seamlessly expire and
 regenerate tokens. This decreases the window of opportunity for a replay or
 brute force attack.)
 
-h3. Site key
-
-
 h3. Session resetting
 
 I moved the reset_session call in the session controller (and the
@@ -32,4 +53,22 @@ users_controller on signup) into the 'success' path -- the CSRF can't do
 anything until the user logs in. Since a redirect follows, it doesn't give
 request-forgery crapstains going forward, though hitting back button and
 resubmiting an earlier form will.  I think it's Mostly Harmless but I've left it
-commented out.
+commented out.  
+
+I'd like to get the advice of someone who understands CSRF better than I on this
+change.
+
+h3. Minor changes
+
+user.rb and users_controller.rb:
+* made the implicit login only happen for non-activationed sites
+* making logout / session_reset'ing uniform across controllers
+* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
+
+
+git ci -m "Backported changes to model and model_controller:
+* Token generation now different than password digest'ing, and all use same method call.
+* added remember_token refresh
+* making logout / session_reset'ing uniform across controllers
+* made the implicit login only happen for non-activationed sites
+* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation"
