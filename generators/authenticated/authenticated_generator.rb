@@ -201,7 +201,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts "Don't forget to:"
         puts
         if options[:include_activation]
-          puts "    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate'"
+          puts %(   map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
           puts
           puts "  - add an observer to config/environment.rb"
           puts "    config.active_record.observers = :#{file_name}_observer"
@@ -220,7 +220,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts
         puts %(map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
         puts %(map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
-        puts %(map.login '/login', :controller => '#{controller_file_name}', :action => 'new')
+        puts %(map.login  '/login',  :controller => '#{controller_file_name}', :action => 'new')
         puts %(map.logout '/logout', :controller => '#{controller_file_name}', :action => 'destroy')
         puts
         puts ("-" * 70)
