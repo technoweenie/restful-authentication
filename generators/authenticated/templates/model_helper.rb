@@ -1,4 +1,4 @@
-module UsersHelper
+module <%= model_controller_class_name %>Helper
   
   #
   # Use this to wrap view elements that the user can't access.
@@ -12,74 +12,74 @@ module UsersHelper
   end
 
   #
-  # Link to user's page ('users/1') with their login as text.  Their login will
+  # Link to user's page ('<%= table_name %>/1') with their login as text.  Their login will
   # appear as the link title (its tooltip) and a 'nickname' class attribute
   # (useful for microformats) will be inserted.
   #
   # Takes options
-  # * :content_text => 'Content text in place of user.login', escaped with
+  # * :content_text => 'Content text in place of <%= file_name %>.login', escaped with
   #   the standard h() function.
-  # * :content_method => :user_instance_method_to_call_for_content_text
-  # * :title_method => :user_instance_method_to_call_for_title_attribute
+  # * :content_method => :<%= file_name %>_instance_method_to_call_for_content_text
+  # * :title_method => :<%= file_name %>_instance_method_to_call_for_title_attribute
   # * as well as link_to()'s standard options
   #
   # Examples:
-  #   link_to_user @user
-  #   # => <a href="/users/3" title="barmy" class="nickname">barmy</a>
+  #   link_to_<%= file_name %> @<%= file_name %>
+  #   # => <a href="/<%= table_name %>/3" title="barmy" class="nickname">barmy</a>
   #
   #   # if you've added a .name attribute:
   #   content_tag :span, :class => :vcard do
-  #     link_to_user @user, :class => 'fn n' :title_method => :login, :content_method => :name
+  #     link_to_<%= file_name %> @<%= file_name %>, :class => 'fn n' :title_method => :login, :content_method => :name
   #   end
-  #   # => <span class="vcard"><a href="/users/3" title="barmy" class="fn n">Cyril Fotheringay-Phipps</a></span>
+  #   # => <span class="vcard"><a href="/<%= table_name %>/3" title="barmy" class="fn n">Cyril Fotheringay-Phipps</a></span>
   #
-  #   link_to_user @user, :content_text => 'Your user page'
-  #   # => <a href="/users/3" title="barmy" class="nickname">Your user page</a>
+  #   link_to_<%= file_name %> @<%= file_name %>, :content_text => 'Your user page'
+  #   # => <a href="/<%= table_name %>/3" title="barmy" class="nickname">Your user page</a>
   #
-  def link_to_user(user, options={})
-    raise "Invalid user" unless user
+  def link_to_<%= file_name %>(<%= file_name %>, options={})
+    raise "Invalid <%= file_name %>" unless <%= file_name %>
     options.reverse_merge! :content_method => :login, :title_method => :login, :class => :nickname
     content_text      = options.delete(:content_text)
-    content_text    ||= user.send(options.delete(:content_method))
-    options[:title] ||= user.send(options.delete(:title_method))
-    link_to h(content_text), user_path(user), options
+    content_text    ||= <%= file_name %>.send(options.delete(:content_method))
+    options[:title] ||= <%= file_name %>.send(options.delete(:title_method))
+    link_to h(content_text), <%= file_name %>_path(<%= file_name %>), options
   end
 
   #
-  # Link to signin page using remote ip address as link content
+  # Link to login page using remote ip address as link content
   #
   # The :title (and thus, tooltip) is set to the IP address 
   #
   # Examples:
-  #   link_to_signin_with_IP
-  #   # => <a href="/signin" title="169.69.69.69">169.69.69.69</a>
+  #   link_to_login_with_IP
+  #   # => <a href="/login" title="169.69.69.69">169.69.69.69</a>
   #
-  #   link_to_signin_with_IP :content_text => 'not signed in'
-  #   # => <a href="/signin" title="169.69.69.69">not signed in</a>
+  #   link_to_login_with_IP :content_text => 'not signed in'
+  #   # => <a href="/login" title="169.69.69.69">not signed in</a>
   #
-  def link_to_signin_with_IP content_text=nil, options={}
+  def link_to_login_with_IP content_text=nil, options={}
     ip_addr           = request.remote_ip
     content_text    ||= ip_addr
     options.reverse_merge! :title => ip_addr
     if tag = options.delete(:tag)
       content_tag tag, h(content_text), options
     else
-      link_to h(content_text), signin_path, options
+      link_to h(content_text), login_path, options
     end
   end
 
   #
-  # Link to the current user's page (using link_to_user) or to the signin page
-  # (using link_to_signin_with_IP).
+  # Link to the current user's page (using link_to_<%= file_name %>) or to the login page
+  # (using link_to_login_with_IP).
   #
-  def link_to_current_user(options={})
-    if current_user
-      link_to_user current_user, options
+  def link_to_current_<%= file_name %>(options={})
+    if current_<%= file_name %>
+      link_to_<%= file_name %> current_<%= file_name %>, options
     else
       content_text = options.delete(:content_text) || 'not signed in'
-      # kill ignored options from link_to_user
+      # kill ignored options from link_to_<%= file_name %>
       [:content_method, :title_method].each{|opt| options.delete(opt)} 
-      link_to_signin_with_IP content_text, options
+      link_to_login_with_IP content_text, options
     end
   end
 
