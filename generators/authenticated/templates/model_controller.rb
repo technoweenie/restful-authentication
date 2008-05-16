@@ -9,21 +9,26 @@ class <%= model_controller_class_name %>Controller < ApplicationController
 
   # render new.rhtml
   def new
+    @user = User.new
   end
 
   def create
-    cookies.delete :auth_token
-    # protects against session fixation attacks, wreaks havoc with 
-    # request forgery protection.
-    # uncomment at your own risk
-    # reset_session
+    logout_keeping_session! 
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
-    @<%= file_name %>.<% if options[:stateful] %>register! if @<%= file_name %>.valid?<% else %>save<% end %>
-    if @<%= file_name %>.errors.empty?
-      self.current_<%= file_name %> = @<%= file_name %>
+    @user && @user.save()
+    success = @<%= file_name %> && @<%= file_name %>.<% if options[:stateful] %>register! if @<%= file_name %>.valid?<% else %>save<% end %>
+    if success && @<%= file_name %>.errors.empty?
+      <% if !options[:include_activation] -%>
+      # protects against session fixation attacks, wreaks havoc with 
+      # request forgery protection.
+      # reset_session
+      self.current_<%= file_name %> = @<%= file_name %> # !! now logged in
+      <% end -%>
       redirect_back_or_default('/')
       flash[:notice] = "Thanks for signing up!"
     else
+      flash[:error]  = "We couldn't set up that account, sorry.  Please try again, or contact an admin (link is above)."
+      @user.password = @user.password_confirmation = ''
       render :action => 'new'
     end
   end

@@ -1,0 +1,35 @@
+I've made a few security changes based on best practices recommended in
+* "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
+* "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
+
+h2. Changes to model
+
+h3. Token generation
+
+The salt and the remember_token should be generated from completely
+unpredictable, irreversible input.  Using the user's email and Time.now leave
+the improbable but feasible attack of watching a person (whose email you've
+captured) log in with 'remember me', then replaying the hash of their email and
+times +/- a few seconds.  I made salt, activation_code and remember_token calls
+all use the same call, and I increased the entropy of that call.
+
+h3. Token regeneration
+
+The session and the remember_token should both be expired and regenerated
+every time we cross the logged out / logged in barrier by either password
+or cookie.  ("To reduce the risk from session hijacking":http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
+and brute force attacks, the HTTP server can seamlessly expire and
+regenerate tokens. This decreases the window of opportunity for a replay or
+brute force attack.)
+
+h3. Site key
+
+
+h3. Session resetting
+
+I moved the reset_session call in the session controller (and the
+users_controller on signup) into the 'success' path -- the CSRF can't do
+anything until the user logs in. Since a redirect follows, it doesn't give
+request-forgery crapstains going forward, though hitting back button and
+resubmiting an earlier form will.  I think it's Mostly Harmless but I've left it
+commented out.

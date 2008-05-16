@@ -38,7 +38,7 @@ Also, add an observer to config/environment.rb if you chose the
 --include-activation option
 
   config.active_record.observers = :user_observer # or whatever you 
-																									# named your model
+                                                  # named your model
 
 Security Alert
 ====

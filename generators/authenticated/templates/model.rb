@@ -69,14 +69,9 @@ class <%= class_name %> < ActiveRecord::Base
     u && u.authenticated?(password) ? u : nil
   end
 
-  # Encrypts some data with the salt.
-  def self.encrypt(password, salt)
-    Digest::SHA1.hexdigest("--#{salt}--#{password}--")
-  end
-
   # Encrypts the password with the user salt
   def encrypt(password)
-    self.class.encrypt(password, salt)
+    self.class.password_digest(password, salt)
   end
 
   def authenticated?(password)
@@ -84,7 +79,8 @@ class <%= class_name %> < ActiveRecord::Base
   end
 
   def remember_token?
-    remember_token_expires_at && Time.now.utc < remember_token_expires_at 
+    (!remember_token.blank?) && 
+      remember_token_expires_at && Time.now.utc < remember_token_expires_at 
   end
 
   # These create and unset the fields required for remembering users between browser closes
@@ -98,8 +94,16 @@ class <%= class_name %> < ActiveRecord::Base
 
   def remember_me_until(time)
     self.remember_token_expires_at = time
-    self.remember_token            = encrypt("#{email}--#{remember_token_expires_at}")
+    self.remember_token            = self.class.make_token
     save(false)
+  end
+
+  # refresh token (keeping same expires_at) if it exists
+  def refresh_token
+    if remember_token?
+      self.remember_token = self.class.make_token 
+      save(false)      
+    end
   end
 
   def forget_me
@@ -117,7 +121,7 @@ class <%= class_name %> < ActiveRecord::Base
     # before filter 
     def encrypt_password
       return if password.blank?
-      self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{login}--") if new_record?
+      self.salt = self.class.make_token if new_record?
       self.crypted_password = encrypt(password)
     end
       
@@ -127,7 +131,7 @@ class <%= class_name %> < ActiveRecord::Base
     <% if options[:include_activation] %>
     def make_activation_code
 <% if options[:stateful] %>      self.deleted_at = nil<% end %>
-      self.activation_code = Digest::SHA1.hexdigest( Time.now.to_s.split(//).sort_by {rand}.join )
+      self.activation_code = self.class.make_token
     end<% end %>
     <% if options[:stateful] %>
     def do_delete
@@ -139,4 +143,12 @@ class <%= class_name %> < ActiveRecord::Base
       self.activated_at = Time.now.utc
       self.deleted_at = self.activation_code = nil
     end<% end %>
+
+    def self.password_digest(password, salt)
+      Digest::SHA1.hexdigest("--#{salt}--#{password}--")
+    end
+
+    def self.make_token
+      Digest::SHA1.hexdigest([Time.now, (1..10).map{ rand.to_s }].flatten.join('&&'))
+    end 
 end
