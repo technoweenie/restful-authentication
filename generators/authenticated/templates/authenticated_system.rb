@@ -30,7 +30,8 @@ module AuthenticatedSystem
     #  def authorized?
     #    current_<%= file_name %>.login != "bob"
     #  end
-    def authorized?
+    #
+    def authorized?(action=nil, resource=nil, *args)
       logged_in?
     end
 
@@ -66,6 +67,8 @@ module AuthenticatedSystem
           store_location
           redirect_to new_<%= controller_singular_name %>_path
         end
+        # format.any doesn't work in rails version < http://dev.rubyonrails.org/changeset/8987
+        # you may want to change format.any to e.g. format.any(:js, :xml)
         format.any do
           request_http_basic_authentication 'Web Password'
         end
@@ -80,7 +83,9 @@ module AuthenticatedSystem
     end
 
     # Redirect to the URI stored by the most recent store_location call or
-    # to the passed default.
+    # to the passed default.  Set an appropriately modified
+    #   after_filter :store_location, :only => [:index, :new, :show, :edit]
+    # for any controller you want to be bounce-backable.
     def redirect_back_or_default(default)
       redirect_to(session[:return_to] || default)
       session[:return_to] = nil
@@ -89,8 +94,12 @@ module AuthenticatedSystem
     # Inclusion hook to make #current_<%= file_name %> and #logged_in?
     # available as ActionView helper methods.
     def self.included(base)
-      base.send :helper_method, :current_<%= file_name %>, :logged_in?
+      base.send :helper_method, :current_<%= file_name %>, :logged_in?, :authorized? if base.respond_to? :helper_method
     end
+
+    #
+    # Login routines
+    #
 
     # Called from #current_<%= file_name %>.  First attempt to login by the <%= file_name %> id stored in the session.
     def login_from_session
@@ -99,17 +108,66 @@ module AuthenticatedSystem
 
     # Called from #current_<%= file_name %>.  Now, attempt to login by basic authentication information.
     def login_from_basic_auth
-      authenticate_with_http_basic do |username, password|
-        self.current_<%= file_name %> = <%= class_name %>.authenticate(username, password)
+      authenticate_with_http_basic do |login, password|
+        self.current_<%= file_name %> = <%= class_name %>.authenticate(login, password)
       end
     end
 
     # Called from #current_<%= file_name %>.  Finaly, attempt to login by an expiring token in the cookie.
+    # for the paranoid: we _should_ be storing <%= file_name %>_token = hash(cookie_token, request IP)
     def login_from_cookie
       <%= file_name %> = cookies[:auth_token] && <%= class_name %>.find_by_remember_token(cookies[:auth_token])
       if <%= file_name %> && <%= file_name %>.remember_token?
-        cookies[:auth_token] = { :value => <%= file_name %>.remember_token, :expires => <%= file_name %>.remember_token_expires_at }
         self.current_<%= file_name %> = <%= file_name %>
+        refresh_remember_cookie_if_set! # freshen cookie token (keeping date)
       end
     end
+
+    # This is ususally what you want; resetting the session willy-nilly wreaks
+    # havoc with forgery protection, and is only strictly necessary on login.
+    # However, **all session state variables should be unset here**.
+    def logout_keeping_session!
+      # Kill server-side auth cookie
+      @current_<%= file_name %>.forget_me if @current_<%= file_name %>.is_a? <%= class_name %>
+      @current_<%= file_name %> = false     # not logged in, and don't do it for me
+      kill_remember_cookie!     # Kill client-side auth cookie
+      session[:<%= file_name %>_id] = nil   # keeps the session but kill our variable
+      # explicitly kill any other session variables you set
+    end
+
+    # The session should only be reset at the tail end of a form POST --
+    # otherwise the request forgery protection fails. It's only really necessary
+    # when you cross quarantine (logged-out to logged-in).
+    def logout_killing_session!
+      logout_keeping_session!
+      reset_session
+    end
+
+    # Cookies shouldn't be allowed to persist past their freshness date,
+    # and they should be changed at each login
+
+    # Refresh the cookie auth token if it exists, create it otherwise
+    def make_or_refresh_remember_cookie!
+      return unless @current_<%= file_name %>
+      if @current_<%= file_name %>.remember_token? then @current_<%= file_name %>.refresh_token else @current_<%= file_name %>.remember_me end
+      send_remember_cookie!
+    end
+
+    # Refresh the cookie auth token if it exists, ignore it otherwise
+    def refresh_remember_cookie_if_set!
+      return unless @current_<%= file_name %> && @current_<%= file_name %>.remember_token?
+      @current_<%= file_name %>.refresh_token
+      send_remember_cookie!
+    end
+
+    def kill_remember_cookie!
+      cookies.delete :auth_token
+    end
+    
+    def send_remember_cookie!
+      cookies[:auth_token] = {
+        :value   => @current_user.remember_token,
+        :expires => @current_user.remember_token_expires_at }
+    end
+
 end
