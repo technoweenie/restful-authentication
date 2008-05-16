@@ -82,6 +82,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.directory File.join('spec/models', class_path)
         m.directory File.join('spec/helpers', model_controller_class_path)
         m.directory File.join('spec/fixtures', class_path)
+        m.directory File.join('stories', class_path,            table_name)
+        m.directory File.join('stories', 'steps')
       else
         m.directory File.join('test/functional', controller_class_path)
         m.directory File.join('test/functional', model_controller_class_path)
@@ -122,22 +124,66 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.template 'functional_spec.rb',
                     File.join('spec/controllers',
                               controller_class_path,
-                              "#{controller_file_name}_controller_spec.rb")
+                              "old_#{controller_file_name}_controller_spec.rb")
         m.template 'model_functional_spec.rb',
                     File.join('spec/controllers',
                               model_controller_class_path,
-                              "#{model_controller_file_name}_controller_spec.rb")
-        m.template 'model_helper_spec.rb',
-                    File.join('spec/helpers',
-                              model_controller_class_path,
-                              "#{table_name}_helper_spec.rb")
+                              "old_#{model_controller_file_name}_controller_spec.rb")
         m.template 'unit_spec.rb',
                     File.join('spec/models',
                               class_path,
-                              "#{file_name}_spec.rb")
+                              "old_#{file_name}_spec.rb")
         m.template 'fixtures.yml',
                     File.join('spec/fixtures',
+                              "old_#{table_name}.yml")
+
+        # RSpec Specs
+        m.file      'spec/controllers/users_controller_spec.rb',
+                    File.join('spec/controllers',
+                              model_controller_class_path,
+                              "#{model_controller_file_name}_controller_spec.rb")
+        m.file      'spec/controllers/sessions_controller_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "#{controller_file_name}_controller_spec.rb")
+        m.file      'spec/controllers/access_control_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "access_control_spec.rb")
+        m.file      'spec/controllers/authenticated_system_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "authenticated_system_spec.rb")
+        m.file      'spec/helpers/users_helper_spec.rb',
+                    File.join('spec/helpers',
+                              model_controller_class_path,
+                              "#{table_name}_helper_spec.rb")
+        m.file      'spec/models/user_spec.rb',
+                    File.join('spec/models',
+                              class_path,
+                              "#{file_name}_spec.rb")
+        m.template 'spec/fixtures/users.yml',
+                    File.join('spec/fixtures',
                               "#{table_name}.yml")
+
+        # RSpec Stories
+        m.file      'stories/steps/ra_navigation_steps.rb',
+         File.join('stories/steps/ra_navigation_steps.rb')
+        m.file      'stories/steps/ra_response_steps.rb',
+         File.join('stories/steps/ra_response_steps.rb')
+        m.file      'stories/steps/ra_resource_steps.rb',
+         File.join('stories/steps/ra_resource_steps.rb')
+        m.file      'stories/steps/user_steps.rb',
+         File.join('stories/steps/', "#{file_name}_steps.rb")
+        m.file      'stories/users/accounts.story',
+         File.join('stories', table_name, 'accounts.story')
+        m.file      'stories/users/sessions.story',
+         File.join('stories', table_name, 'sessions.story')
+        m.file      'stories/helper_rest_auth_stories.rb',
+         File.join('stories', 'helper_rest_auth_stories.rb')
+        m.file      'stories/rest_auth_stories.rb',
+         File.join('stories', 'rest_auth_stories.rb')
+
       else
         m.template 'functional_test.rb',
                     File.join('test/functional',
@@ -173,6 +219,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       # Controller templates
       m.template 'login.html.erb',  File.join('app/views', controller_class_path, controller_file_name, "new.html.erb")
       m.template 'signup.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "new.html.erb")
+      m.template '_model_partial.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "_#{file_name}_bar.html.erb")
 
       if options[:include_activation]
         # Mailer templates

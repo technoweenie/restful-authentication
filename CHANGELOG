@@ -49,6 +49,10 @@ h3. authenticated_system
   
 h3. Changes to model
 
+* recently_activated? belongs only if stateful
+
+* Gave migration a 40-char limit on remember_token & an index on users by login
+
 h4. Token generation
 
 The salt and the remember_token should be generated from completely
@@ -79,10 +83,18 @@ commented out.
 I'd like to get the advice of someone who understands CSRF better than I on this
 change.
 
+h3. Specs
 
-git ci -m "Backported changes to model and model_controller:
-* Token generation now different than password digest'ing, and all use same method call.
-* added remember_token refresh
-* making logout / session_reset'ing uniform across controllers
-* made the implicit login only happen for non-activationed sites
-* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation"
+h3. Stories
+
+
+h3. Views
+
+* Used escapes <%= %> in email templates (among other reasons, so courtenay's
+  "'dumbass' test":http://tinyurl.com/684g9t doesn't complain)
+
+echo git ci -m '* Used escapes <%= %> in email templates (among other reasons, so courtenays
+  "dumbass test":http://tinyurl.com/684g9t doesn\'t complain)" generators/authenticated/templates/{activation.html.erb,signup.html.erb,signup_notification.html.erb}
+
+
+controller.rb,

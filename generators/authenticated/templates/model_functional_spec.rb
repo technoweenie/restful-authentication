@@ -64,7 +64,7 @@ describe <%= model_controller_class_name %>Controller do
   it 'activates user' do
     <%= class_name %>.authenticate('aaron', 'test').should be_nil
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code
-    response.should redirect_to('/')
+    response.should redirect_to('/session/new')
     flash[:notice].should_not be_nil
     <%= class_name %>.authenticate('aaron', 'test').should == <%= table_name %>(:aaron)
   end

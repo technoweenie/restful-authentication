@@ -112,10 +112,12 @@ class <%= class_name %> < ActiveRecord::Base
     save(false)
   end
 
+<% if options[:stateful] -%>
   # Returns true if the user has just been activated.
   def recently_activated?
     @activated
   end
+<% end -%>
 
   protected
     # before filter 
@@ -130,7 +132,8 @@ class <%= class_name %> < ActiveRecord::Base
     end
     <% if options[:include_activation] %>
     def make_activation_code
-<% if options[:stateful] %>      self.deleted_at = nil<% end %>
+<% if options[:stateful] -%>
+      self.deleted_at = nil<% end %>
       self.activation_code = self.class.make_token
     end<% end %>
     <% if options[:stateful] %>

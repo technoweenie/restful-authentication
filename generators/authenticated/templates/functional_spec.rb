@@ -32,14 +32,15 @@ describe <%= controller_class_name %>Controller do
   end
   
   it 'does not remember me' do
+    <%= table_name %>(:quentin).forget_me
     post :create, :login => 'quentin', :password => 'test', :remember_me => "0"
-    response.cookies["auth_token"].should be_nil
+    response.cookies["auth_token"].should be_blank
   end
 
   it 'deletes token on logout' do
     login_as :quentin
     get :destroy
-    response.cookies["auth_token"].should == []
+    response.cookies["auth_token"].should be_blank
   end
 
   it 'logs in with cookie' do

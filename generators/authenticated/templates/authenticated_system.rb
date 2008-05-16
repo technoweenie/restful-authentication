@@ -6,7 +6,7 @@ module AuthenticatedSystem
       !!current_<%= file_name %>
     end
 
-    # Accesses the current <%= file_name %> from the session. 
+    # Accesses the current <%= file_name %> from the session.
     # Future calls avoid the database because nil is not equal to false.
     def current_<%= file_name %>
       @current_<%= file_name %> ||= (login_from_session || login_from_basic_auth || login_from_cookie) unless @current_<%= file_name %> == false
@@ -98,7 +98,7 @@ module AuthenticatedSystem
     end
 
     #
-    # Login routines
+    # Login
     #
 
     # Called from #current_<%= file_name %>.  First attempt to login by the <%= file_name %> id stored in the session.
@@ -112,6 +112,10 @@ module AuthenticatedSystem
         self.current_<%= file_name %> = <%= class_name %>.authenticate(login, password)
       end
     end
+    
+    #
+    # Logout
+    #
 
     # Called from #current_<%= file_name %>.  Finaly, attempt to login by an expiring token in the cookie.
     # for the paranoid: we _should_ be storing <%= file_name %>_token = hash(cookie_token, request IP)
@@ -142,6 +146,12 @@ module AuthenticatedSystem
       logout_keeping_session!
       reset_session
     end
+    
+    #
+    # Remember_me Tokens
+    #
+    # Cookies shouldn't be allowed to persist past their freshness date,
+    # and they should be changed at each login
 
     # Cookies shouldn't be allowed to persist past their freshness date,
     # and they should be changed at each login

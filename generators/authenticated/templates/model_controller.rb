@@ -13,7 +13,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
   end
  
   def create
-    logout_keeping_session! 
+    logout_keeping_session!
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
 <% if options[:stateful] -%>
     @<%= file_name %>.register! if @<%= file_name %> && @<%= file_name %>.valid?
@@ -51,7 +51,6 @@ class <%= model_controller_class_name %>Controller < ApplicationController
       flash[:error]  = "We couldn't find a user with that activation code -- check your email? Or maybe you've already activated -- try signing in."
       redirect_back_or_default('/')
     end
-    redirect_back_or_default('/') # shouldn't get here
   end
 <% end %><% if options[:stateful] %>
   def suspend
@@ -82,5 +81,5 @@ protected
   def find_<%= file_name %>
     @<%= file_name %> = <%= class_name %>.find(params[:id])
   end
-<% end %>
+<% end -%>
 end

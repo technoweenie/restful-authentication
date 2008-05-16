@@ -5,16 +5,22 @@ module <%= model_controller_class_name %>Helper
   # !! Note: this is an *interface*, not *security* feature !!
   # You need to do all access control at the controller level.
   #
-  def if_authorized(action, resource, &block)
+  # Example:
+  # <%%= if_authorized?(:index,   User)  do link_to('List all users', users_path) end %> |
+  # <%%= if_authorized?(:edit,    @user) do link_to('Edit this user', edit_user_path) end %> |
+  # <%%= if_authorized?(:destroy, @user) do link_to 'Destroy', @user, :confirm => 'Are you sure?', :method => :delete end %> 
+  #
+  #
+  def if_authorized?(action, resource, &block)
     if authorized?(action, resource)
       yield action, resource
     end
   end
 
   #
-  # Link to user's page ('<%= table_name %>/1') with their login as text.  Their login will
-  # appear as the link title (its tooltip) and a 'nickname' class attribute
-  # (useful for microformats) will be inserted.
+  # Link to user's page ('<%= table_name %>/1')
+  #
+  # By default, their login is used as link text and link title (tooltip)
   #
   # Takes options
   # * :content_text => 'Content text in place of <%= file_name %>.login', escaped with
@@ -25,13 +31,14 @@ module <%= model_controller_class_name %>Helper
   #
   # Examples:
   #   link_to_<%= file_name %> @<%= file_name %>
-  #   # => <a href="/<%= table_name %>/3" title="barmy" class="nickname">barmy</a>
+  #   # => <a href="/<%= table_name %>/3" title="barmy">barmy</a>
   #
   #   # if you've added a .name attribute:
-  #   content_tag :span, :class => :vcard do
-  #     link_to_<%= file_name %> @<%= file_name %>, :class => 'fn n' :title_method => :login, :content_method => :name
+  #  content_tag :span, :class => :vcard do
+  #    (link_to_<%= file_name %> <%= file_name %>, :class => 'fn n', :title_method => :login, :content_method => :name) +
+  #          ': ' + (content_tag :span, <%= file_name %>.email, :class => 'email')
   #   end
-  #   # => <span class="vcard"><a href="/<%= table_name %>/3" title="barmy" class="fn n">Cyril Fotheringay-Phipps</a></span>
+  #   # => <span class="vcard"><a href="/<%= table_name %>/3" title="barmy" class="fn n">Cyril Fotheringay-Phipps</a>: <span class="email">barmy@blandings.com</span></span>
   #
   #   link_to_<%= file_name %> @<%= file_name %>, :content_text => 'Your user page'
   #   # => <a href="/<%= table_name %>/3" title="barmy" class="nickname">Your user page</a>

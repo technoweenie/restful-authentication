@@ -10,11 +10,11 @@ class <%= controller_class_name %>Controller < ApplicationController
   def create
     logout_keeping_session!
     <%= file_name %> = <%= class_name %>.authenticate(params[:login], params[:password])
-    if <%= file_name %> 
+    if <%= file_name %>
       # Protects against session fixation attacks, causes request forgery
       # protection if user resubmits an earlier form using back
       # button. Uncomment if you understand the tradeoffs.
-      # reset_session      
+      # reset_session
       self.current_<%= file_name %> = <%= file_name %>
       if params[:remember_me] == "1"
         make_or_refresh_remember_cookie!
@@ -38,11 +38,9 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
 protected
-
   # Track failed login attempts
   def note_failed_signin
     flash[:error] = "Couldn't log you in as '#{params[:login]}'"
     logger.warn "Failed login for '#{params[:login]}' from #{request.remote_ip} at #{Time.now.utc}"
   end
-
 end
