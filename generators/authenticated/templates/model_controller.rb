@@ -29,7 +29,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
       self.current_<%= file_name %> = @<%= file_name %> # !! now logged in
       <% end -%>
       redirect_back_or_default('/')
-      flash[:notice] = "Thanks for signing up!"
+      flash[:notice] = "Thanks for signing up!  We're sending you an email with your activation code."
     else
       flash[:error]  = "We couldn't set up that account, sorry.  Please try again, or contact an admin (link is above)."
       render :action => 'new'
@@ -37,12 +37,21 @@ class <%= model_controller_class_name %>Controller < ApplicationController
   end
 <% if options[:include_activation] %>
   def activate
-    self.current_<%= file_name %> = params[:activation_code].blank? ? false : <%= class_name %>.find_by_activation_code(params[:activation_code])
-    if logged_in? && !current_<%= file_name %>.active?
-      current_<%= file_name %>.activate<% if options[:stateful] %>!<% end %>
-      flash[:notice] = "Signup complete!"
+    logout_keeping_session!
+    <%= file_name %> = User.find_by_activation_code(params[:activation_code]) unless params[:activation_code].blank?
+    case
+    when (!params[:activation_code].blank?) && user && !user.active?
+      user.activate
+      flash[:notice] = "Signup complete! Please sign in to continue."
+      redirect_to new_<%= controller_singular_name %>_path
+    when params[:activation_code].blank?
+      flash[:error] = "The activation code was missing.  Please follow the URL from your email."
+      redirect_back_or_default('/')
+    else 
+      flash[:error]  = "We couldn't find a user with that activation code -- check your email? Or maybe you've already activated -- try signing in."
+      redirect_back_or_default('/')
     end
-    redirect_back_or_default('/')
+    redirect_back_or_default('/') # shouldn't get here
   end
 <% end %><% if options[:stateful] %>
   def suspend
@@ -64,6 +73,10 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     @<%= file_name %>.destroy
     redirect_to <%= table_name %>_path
   end
+  
+  # There's no page here to update or destroy a user.  If you add those, be
+  # smart -- make sure you check that the user is authorized to do so, that they
+  # supply their old password along with a new one to update it, etc.
 
 protected
   def find_<%= file_name %>

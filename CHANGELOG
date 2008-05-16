@@ -18,13 +18,19 @@ h2. Changes to session_controller
 * recycle login and remember_me setting on failed login
 * nil'ed out the password field in 'new' view
 
+h3. Changes to users_controller
+
+* use uniform logout function
+* more descriptive error messages in activate()
+* don't auto-login on activate.  If the plugin is going to, there needs to be a
+  single point of entry among session/new, users/new and users/activate.
+
 h3. users_helper
 
 * link_to_user, link_to_current_user, link_to_signin_with_IP convenience
   functions
 * if_authorized(action, resource, &block) view function (with appropriate
   warning)
-
 
 h2. Changes to model
 
