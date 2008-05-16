@@ -1,4 +1,5 @@
-<h1>Register as a new user</h1>
+<h1>Sign up as a new user</h1>
+<%% @<%= file_name %>.password = @<%= file_name %>.password_confirmation = nil %>
 
 <%%= error_messages_for :<%= file_name %> %>
 <%% form_for :<%= file_name %>, :url => <%= table_name %>_path do |f| -%>
@@ -9,10 +10,10 @@
 <%%= f.text_field :email %></p>
 
 <p><label for="password">Password</label><br/>
-<%%= f.password_field :password, nil %></p>
+<%%= f.password_field :password %></p>
 
 <p><label for="password_confirmation">Confirm Password</label><br/>
-<%%= f.password_field :password_confirmation, nil %></p>
+<%%= f.password_field :password_confirmation %></p>
 
 <p><%%= submit_tag 'Sign up' %></p>
 <%% end -%>
