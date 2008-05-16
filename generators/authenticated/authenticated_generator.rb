@@ -138,27 +138,27 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                               "old_#{table_name}.yml")
 
         # RSpec Specs
-        m.file      'spec/controllers/users_controller_spec.rb',
+        m.template  'spec/controllers/users_controller_spec.rb',
                     File.join('spec/controllers',
                               model_controller_class_path,
                               "#{model_controller_file_name}_controller_spec.rb")
-        m.file      'spec/controllers/sessions_controller_spec.rb',
+        m.template  'spec/controllers/sessions_controller_spec.rb',
                     File.join('spec/controllers',
                               controller_class_path,
                               "#{controller_file_name}_controller_spec.rb")
-        m.file      'spec/controllers/access_control_spec.rb',
+        m.template  'spec/controllers/access_control_spec.rb',
                     File.join('spec/controllers',
                               controller_class_path,
                               "access_control_spec.rb")
-        m.file      'spec/controllers/authenticated_system_spec.rb',
+        m.template  'spec/controllers/authenticated_system_spec.rb',
                     File.join('spec/controllers',
                               controller_class_path,
                               "authenticated_system_spec.rb")
-        m.file      'spec/helpers/users_helper_spec.rb',
+        m.template  'spec/helpers/users_helper_spec.rb',
                     File.join('spec/helpers',
                               model_controller_class_path,
                               "#{table_name}_helper_spec.rb")
-        m.file      'spec/models/user_spec.rb',
+        m.template  'spec/models/user_spec.rb',
                     File.join('spec/models',
                               class_path,
                               "#{file_name}_spec.rb")
@@ -167,21 +167,21 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                               "#{table_name}.yml")
 
         # RSpec Stories
-        m.file      'stories/steps/ra_navigation_steps.rb',
+        m.template  'stories/steps/ra_navigation_steps.rb',
          File.join('stories/steps/ra_navigation_steps.rb')
-        m.file      'stories/steps/ra_response_steps.rb',
+        m.template  'stories/steps/ra_response_steps.rb',
          File.join('stories/steps/ra_response_steps.rb')
-        m.file      'stories/steps/ra_resource_steps.rb',
+        m.template  'stories/steps/ra_resource_steps.rb',
          File.join('stories/steps/ra_resource_steps.rb')
-        m.file      'stories/steps/user_steps.rb',
+        m.template  'stories/steps/user_steps.rb',
          File.join('stories/steps/', "#{file_name}_steps.rb")
-        m.file      'stories/users/accounts.story',
+        m.template  'stories/users/accounts.story',
          File.join('stories', table_name, 'accounts.story')
-        m.file      'stories/users/sessions.story',
+        m.template  'stories/users/sessions.story',
          File.join('stories', table_name, 'sessions.story')
-        m.file      'stories/helper_rest_auth_stories.rb',
-         File.join('stories', 'helper_rest_auth_stories.rb')
-        m.file      'stories/rest_auth_stories.rb',
+        m.template  'stories/rest_auth_stories_helper.rb',
+         File.join('stories', 'rest_auth_stories_helper.rb')
+        m.template  'stories/rest_auth_stories.rb',
          File.join('stories', 'rest_auth_stories.rb')
 
       else
