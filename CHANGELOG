@@ -1,0 +1,100 @@
+I've made a few security changes based on best practices recommended in
+* "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
+* "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
+
+They're described in more detail below.
+
+h2. Changes to session_controller
+
+* use uniform logout function
+* avoid calling logged_in? which will auto-log-you-in (safe in the face of
+  logout! call, but idiot-proof
+* log in is where reset_session is really needed -- wherever it goes, it has to
+  be in front of the current_user= call
+* using uniform remember_cookie functions
+* made a place to take action on failed login attempt
+* recycle login and remember_me setting on failed login
+* nil'ed out the password field in 'new' view
+
+h3. Changes to users_controller
+
+* made the implicit login only happen for non-activationed sites
+* made logout / session_reset'ing uniform across controllers
+* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
+* use uniform logout function
+* more descriptive error messages in activate()
+* don't auto-login on activate.  If the plugin is going to, there needs to be a
+  single point of entry among session/new, users/new and users/activate.
+
+h3. users_helper
+
+* link_to_user, link_to_current_user, link_to_signin_with_IP convenience
+  functions
+* if_authorized(action, resource, &block) view function (with appropriate
+  warning)
+
+h3. authenticated_system
+
+* Made authorized? take optional arguments action=nil, resource=nil, *args
+  This makes its signature better match traditional approaches to access control
+  eg Reference Monitor in \"Security Patterns\":http://www.securitypatterns.org/patterns.html)
+* authorized? should be a helper too
+* added uniform logout! methods
+* format.any (as found in access_denied) doesn't work until
+  http://dev.rubyonrails.org/changeset/8987 lands.
+* cookies, just like session tokens, should be refreshed each time we cross the
+  logged out/in barrier http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
+* !!!! Possibly stupid !!!
+  Made current_user and logged_in? be public methods.  I did this for the worst
+  possible reason -- so that I could write story steps that call it directly.
+  However, they're already globally public methods in principle through their
+  exposure as helper methods.  But if there's a less kludgy fix please educate
+  me.
+
+h3. Changes to model
+
+* recently_activated? belongs only if stateful
+* Gave migration a 40-char limit on remember_token & an index on users by login
+
+h4. Token generation
+
+The salt and the remember_token should be generated from completely
+unpredictable, irreversible input.  Using the user's email and Time.now leave
+the improbable but feasible attack of watching a person (whose email you've
+captured) log in with 'remember me', then replaying the hash of their email and
+times +/- a few seconds.  I made salt, activation_code and remember_token calls
+all use the same call, and I increased the entropy of that call.
+
+h4. Token regeneration
+
+The session and the remember_token should both be expired and regenerated
+every time we cross the logged out / logged in barrier by either password
+or cookie.  ("To reduce the risk from session hijacking":http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
+and brute force attacks, the HTTP server can seamlessly expire and
+regenerate tokens. This decreases the window of opportunity for a replay or
+brute force attack.)
+
+h4. Session resetting
+
+I moved the reset_session call in the session controller (and the
+users_controller on signup) into the 'success' path -- the CSRF can't do
+anything until the user logs in. Since a redirect follows, it doesn't give
+request-forgery crapstains going forward, though hitting back button and
+resubmiting an earlier form will.  I think it's Mostly Harmless but I've left it
+commented out.  
+
+I'd like to get the advice of someone who understands CSRF better than I on this
+change.
+
+h3. Views
+
+* Used escapes <%= %> in email templates (among other reasons, so courtenay's
+  "'dumbass' test":http://tinyurl.com/684g9t doesn't complain)
+
+h3. Specs
+
+* 100% coverage (needed some access_control checks, and the http_auth stuff)
+
+h3. Stories
+
+* added them

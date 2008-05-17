@@ -1,44 +1,70 @@
 Restful Authentication Generator
 ====
 
-This is a basic restful authentication generator for rails, taken 
-from acts as authenticated.  Currently it requires Rails 1.2.6 or above.
+This is a basic restful authentication generator for rails, taken from
+acts as authenticated.  Currently it requires Rails 1.2.6 or above.
 
 To use:
 
   ./script/generate authenticated user sessions \
-		--include-activation \
-		--stateful
+    --include-activation \
+    --stateful \
+    --rspec \
+    --skip-migration \
+    --skip-routes
 
 The first parameter specifies the model that gets created in signup
-(typically a user or account model).  A model with migration is 
+(typically a user or account model).  A model with migration is
 created, as well as a basic controller with the create method.
 
 The second parameter specifies the sessions controller name.  This is
-the controller that handles the actual login/logout function on the 
+the controller that handles the actual login/logout function on the
 site.
 
-The third parameter (--include-activation) generates the code for a 
+The third parameter (--include-activation) generates the code for a
 ActionMailer and its respective Activation Code through email.
 
-The fourth (--stateful) builds in support for acts_as_state_machine
-and generates activation code.  This was taken from:
+The fourth (--stateful) builds in support for acts_as_state_machine and
+generates activation code.  (--stateful implies --include-activation).
+This was taken from:
 
 http://www.vaporbase.com/postings/stateful_authentication
 
-You can pass --skip-migration to skip the user migration.
+Passing --skip-migration will skip the user migration, and --skip-routes will
+skip resource generation -- both useful if you've already run this generator.
 
-If you're using acts_as_state_machine, define your users resource like this:
+Pass --rspec to generate a (more thorough) set of RSpec tests.  This
+requires the RSpec and Rspec-on-rails plugins: http://rspec.info/
 
-	map.resources :users, :member => { :suspend   => :put,
-                                     :unsuspend => :put,
-                                     :purge     => :delete }
+***************************************************************************
+Post-install
 
-Also, add an observer to config/environment.rb if you chose the 
---include-activation option
+The below assumes a Model named 'User' and a Controller named
+'Session'; please alter to suit.
 
+Try these for some familiar login URLs if you like:
+  map.signup  '/signup', :controller => 'users',   :action => 'new'
+  map.signin  '/login',  :controller => 'session', :action => 'new'
+  map.signout '/logout', :controller => 'session', :action => 'destroy'
+
+With --include-activation:
+
+* Add a route to config/routes.rb:
+    map.activate '/activate/:activation_code', :controller => 'users', :action => 'activate', :activation_code => nil)
+
+* Add an observer to config/environment.rb:
+    config.active_record.observers = :users_observer
+
+* Add an observer to config/environment.rb
   config.active_record.observers = :user_observer # or whatever you 
-																									# named your model
+                                                  # named your model
+
+With --stateful:
+
+* If you're using acts_as_state_machine, define your users resource like this:
+    map.resources :users, :member => { :suspend   => :put,
+                                       :unsuspend => :put,
+                                       :purge     => :delete }
 
 Security Alert
 ====
@@ -49,3 +75,12 @@ combat session fixation attacks.  However, this resets the Form
 Authentication token used by Request Forgery Protection.  I've left
 it out now, since Rails 1.2.6 and Rails 2.0 will both stop session
 fixation attacks anyway.
+
+***************************************************************************
+Stories
+
+There are now RSpec stories that allow expressive enjoyable tests for the
+authentication code.
+
+The flexible code for resource testing came out of code from Ben Mabey
+http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/

@@ -1,6 +1,7 @@
 require 'restful_authentication/rails_commands'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
+                  :skip_routes => false,
                   :include_activation => false
                   
   attr_reader   :controller_name,
@@ -82,10 +83,13 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.directory File.join('spec/models', class_path)
         m.directory File.join('spec/helpers', model_controller_class_path)
         m.directory File.join('spec/fixtures', class_path)
+        m.directory File.join('stories', class_path,            table_name)
+        m.directory File.join('stories', 'steps')
       else
         m.directory File.join('test/functional', controller_class_path)
         m.directory File.join('test/functional', model_controller_class_path)
         m.directory File.join('test/unit', class_path)
+        m.directory File.join('test/fixtures', class_path)
       end
 
       m.template 'model.rb',
@@ -118,25 +122,53 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                   File.join('lib', 'authenticated_test_helper.rb')
 
       if @rspec
-        m.template 'functional_spec.rb',
-                    File.join('spec/controllers',
-                              controller_class_path,
-                              "#{controller_file_name}_controller_spec.rb")
-        m.template 'model_functional_spec.rb',
+        # RSpec Specs
+        m.template  'spec/controllers/users_controller_spec.rb',
                     File.join('spec/controllers',
                               model_controller_class_path,
                               "#{model_controller_file_name}_controller_spec.rb")
-        m.template 'model_helper_spec.rb',
+        m.template  'spec/controllers/sessions_controller_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "#{controller_file_name}_controller_spec.rb")
+        m.template  'spec/controllers/access_control_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "access_control_spec.rb")
+        m.template  'spec/controllers/authenticated_system_spec.rb',
+                    File.join('spec/controllers',
+                              controller_class_path,
+                              "authenticated_system_spec.rb")
+        m.template  'spec/helpers/users_helper_spec.rb',
                     File.join('spec/helpers',
                               model_controller_class_path,
                               "#{table_name}_helper_spec.rb")
-        m.template 'unit_spec.rb',
+        m.template  'spec/models/user_spec.rb',
                     File.join('spec/models',
                               class_path,
                               "#{file_name}_spec.rb")
-        m.template 'fixtures.yml',
+        m.template 'spec/fixtures/users.yml',
                     File.join('spec/fixtures',
                               "#{table_name}.yml")
+
+        # RSpec Stories
+        m.template  'stories/steps/ra_navigation_steps.rb',
+         File.join('stories/steps/ra_navigation_steps.rb')
+        m.template  'stories/steps/ra_response_steps.rb',
+         File.join('stories/steps/ra_response_steps.rb')
+        m.template  'stories/steps/ra_resource_steps.rb',
+         File.join('stories/steps/ra_resource_steps.rb')
+        m.template  'stories/steps/user_steps.rb',
+         File.join('stories/steps/', "#{file_name}_steps.rb")
+        m.template  'stories/users/accounts.story',
+         File.join('stories', table_name, 'accounts.story')
+        m.template  'stories/users/sessions.story',
+         File.join('stories', table_name, 'sessions.story')
+        m.template  'stories/rest_auth_stories_helper.rb',
+         File.join('stories', 'rest_auth_stories_helper.rb')
+        m.template  'stories/rest_auth_stories.rb',
+         File.join('stories', 'rest_auth_stories.rb')
+
       else
         m.template 'functional_test.rb',
                     File.join('test/functional',
@@ -172,6 +204,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       # Controller templates
       m.template 'login.html.erb',  File.join('app/views', controller_class_path, controller_file_name, "new.html.erb")
       m.template 'signup.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "new.html.erb")
+      m.template '_model_partial.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "_#{file_name}_bar.html.erb")
 
       if options[:include_activation]
         # Mailer templates
@@ -187,8 +220,11 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
       
-      m.route_resource  controller_singular_name
-      m.route_resources model_controller_plural_name
+      unless options[:skip_routes]
+        m.route_resource  controller_singular_name
+        m.route_resources model_controller_plural_name
+      end
+      
     end
 
     action = nil
@@ -200,7 +236,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts "Don't forget to:"
         puts
         if options[:include_activation]
-          puts "    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate'"
+          puts %(   map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
           puts
           puts "  - add an observer to config/environment.rb"
           puts "    config.active_record.observers = :#{file_name}_observer"
@@ -219,7 +255,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts
         puts %(map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
         puts %(map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
-        puts %(map.login '/login', :controller => '#{controller_file_name}', :action => 'new')
+        puts %(map.login  '/login',  :controller => '#{controller_file_name}', :action => 'new')
         puts %(map.logout '/logout', :controller => '#{controller_file_name}', :action => 'destroy')
         puts
         puts ("-" * 70)
@@ -257,12 +293,14 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       opt.separator ''
       opt.separator 'Options:'
       opt.on("--skip-migration", 
-             "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
+             "Don't generate a migration file for this model")           { |v| options[:skip_migration] = v }
       opt.on("--include-activation", 
              "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
       opt.on("--stateful", 
              "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
       opt.on("--rspec",
              "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
+      opt.on("--skip-routes", 
+             "Don't generate a resource line in config/routes.rb")       { |v| options[:skip_routes] = v }
     end
 end
