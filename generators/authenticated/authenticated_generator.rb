@@ -122,22 +122,6 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                   File.join('lib', 'authenticated_test_helper.rb')
 
       if @rspec
-        m.template 'functional_spec.rb',
-                    File.join('spec/controllers',
-                              controller_class_path,
-                              "old_#{controller_file_name}_controller_spec.rb")
-        m.template 'model_functional_spec.rb',
-                    File.join('spec/controllers',
-                              model_controller_class_path,
-                              "old_#{model_controller_file_name}_controller_spec.rb")
-        m.template 'unit_spec.rb',
-                    File.join('spec/models',
-                              class_path,
-                              "old_#{file_name}_spec.rb")
-        m.template 'fixtures.yml',
-                    File.join('spec/fixtures',
-                              "old_#{table_name}.yml")
-
         # RSpec Specs
         m.template  'spec/controllers/users_controller_spec.rb',
                     File.join('spec/controllers',

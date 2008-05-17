@@ -16,7 +16,7 @@ describe <%= class_name %> do
       end
     end
     
-    it 'increments User#count' do
+    it 'increments <%= class_name %>#count' do
       @creating_<%= file_name %>.should change(<%= class_name %>, :count).by(1)
     end
 <% if options[:include_activation] %>

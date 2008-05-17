@@ -9,7 +9,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
 
   # render new.rhtml
   def new
-    @user = User.new
+    @<%= file_name %> = <%= class_name %>.new
   end
  
   def create
@@ -24,7 +24,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     if success && @<%= file_name %>.errors.empty?
       <% if !options[:include_activation] -%>
       # Protects against session fixation attacks, causes request forgery
-      # protection if user resubmits an earlier form using back
+      # protection if visitor resubmits an earlier form using back
       # button. Uncomment if you understand the tradeoffs.
       self.current_<%= file_name %> = @<%= file_name %> # !! now logged in
       <% end -%>
@@ -38,17 +38,17 @@ class <%= model_controller_class_name %>Controller < ApplicationController
 <% if options[:include_activation] %>
   def activate
     logout_keeping_session!
-    <%= file_name %> = User.find_by_activation_code(params[:activation_code]) unless params[:activation_code].blank?
+    <%= file_name %> = <%= class_name %>.find_by_activation_code(params[:activation_code]) unless params[:activation_code].blank?
     case
-    when (!params[:activation_code].blank?) && user && !user.active?
-      user.activate
+    when (!params[:activation_code].blank?) && <%= file_name %> && !<%= file_name %>.active?
+      <%= file_name %>.activate
       flash[:notice] = "Signup complete! Please sign in to continue."
       redirect_to new_<%= controller_singular_name %>_path
     when params[:activation_code].blank?
       flash[:error] = "The activation code was missing.  Please follow the URL from your email."
       redirect_back_or_default('/')
     else 
-      flash[:error]  = "We couldn't find a user with that activation code -- check your email? Or maybe you've already activated -- try signing in."
+      flash[:error]  = "We couldn't find a <%= file_name %> with that activation code -- check your email? Or maybe you've already activated -- try signing in."
       redirect_back_or_default('/')
     end
   end
@@ -73,8 +73,8 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     redirect_to <%= table_name %>_path
   end
   
-  # There's no page here to update or destroy a user.  If you add those, be
-  # smart -- make sure you check that the user is authorized to do so, that they
+  # There's no page here to update or destroy a <%= file_name %>.  If you add those, be
+  # smart -- make sure you check that the visitor is authorized to do so, that they
   # supply their old password along with a new one to update it, etc.
 
 protected
