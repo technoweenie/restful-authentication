@@ -1,6 +1,7 @@
 require 'restful_authentication/rails_commands'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
+                  :skip_routes => false,
                   :include_activation => false
                   
   attr_reader   :controller_name,
@@ -235,8 +236,11 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
       
-      m.route_resource  controller_singular_name
-      m.route_resources model_controller_plural_name
+      unless options[:skip_routes]
+        m.route_resource  controller_singular_name
+        m.route_resources model_controller_plural_name
+      end
+      
     end
 
     action = nil
@@ -305,12 +309,14 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       opt.separator ''
       opt.separator 'Options:'
       opt.on("--skip-migration", 
-             "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
+             "Don't generate a migration file for this model")           { |v| options[:skip_migration] = v }
       opt.on("--include-activation", 
              "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
       opt.on("--stateful", 
              "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
       opt.on("--rspec",
              "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
+      opt.on("--skip-routes", 
+             "Don't generate a resource line in config/routes.rb")       { |v| options[:skip_routes] = v }
     end
 end

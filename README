@@ -9,8 +9,9 @@ To use:
   ./script/generate authenticated user sessions \
     --include-activation \
     --stateful \
-		--rspec \
-		--skip-migration
+    --rspec \
+    --skip-migration \
+    --skip-routes
 
 The first parameter specifies the model that gets created in signup
 (typically a user or account model).  A model with migration is
@@ -29,12 +30,11 @@ This was taken from:
 
 http://www.vaporbase.com/postings/stateful_authentication
 
-Passing --skip-migration will skip the user migration, useful if
-you've already run this generator.
+Passing --skip-migration will skip the user migration, and --skip-routes will
+skip resource generation -- both useful if you've already run this generator.
 
 Pass --rspec to generate a (more thorough) set of RSpec tests.  This
 requires the RSpec and Rspec-on-rails plugins: http://rspec.info/
-
 
 ***************************************************************************
 Post-install
@@ -75,3 +75,12 @@ combat session fixation attacks.  However, this resets the Form
 Authentication token used by Request Forgery Protection.  I've left
 it out now, since Rails 1.2.6 and Rails 2.0 will both stop session
 fixation attacks anyway.
+
+***************************************************************************
+Stories
+
+There are now RSpec stories that allow expressive enjoyable tests for the
+authentication code.
+
+The flexible code for resource testing came out of code from Ben Mabey
+http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
