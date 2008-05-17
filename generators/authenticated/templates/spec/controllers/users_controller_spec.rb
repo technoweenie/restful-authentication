@@ -80,6 +80,12 @@ describe <%= model_controller_class_name %>Controller do
     get :activate, :activation_code => ''
     flash[:notice].should     be_nil
     flash[:error ].should_not be_nil
+  end
+  
+  it 'does not activate user with bogus key' do
+    get :activate, :activation_code => 'i_haxxor_joo'
+    flash[:notice].should     be_nil
+    flash[:error ].should_not be_nil
   end<% end %>
   
   def create_<%= file_name %>(options = {})

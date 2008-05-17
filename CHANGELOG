@@ -1,7 +1,4 @@
 
-!!! note to self -- look for .utc ' ing of times.  !!!
-
-
 I've made a few security changes based on best practices recommended in
 * "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
 * "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
