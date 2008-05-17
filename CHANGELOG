@@ -46,7 +46,13 @@ h3. authenticated_system
   http://dev.rubyonrails.org/changeset/8987 lands.
 * cookies, just like session tokens, should be refreshed each time we cross the
   logged out/in barrier http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
-  
+* !!!! Possibly stupid !!!
+  Made current_user and logged_in? be public methods.  I did this for the worst
+  possible reason -- so that I could write story steps that call it directly.
+  However, they're already globally public methods in principle through their
+  exposure as helper methods.  But if there's a less kludgy fix please educate
+  me.
+
 h3. Changes to model
 
 * recently_activated? belongs only if stateful
