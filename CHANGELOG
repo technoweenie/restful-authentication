@@ -1,7 +1,8 @@
-
 I've made a few security changes based on best practices recommended in
 * "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
 * "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
+
+They're described in more detail below.
 
 h2. Changes to session_controller
 
@@ -53,7 +54,6 @@ h3. authenticated_system
 h3. Changes to model
 
 * recently_activated? belongs only if stateful
-
 * Gave migration a 40-char limit on remember_token & an index on users by login
 
 h4. Token generation
@@ -86,18 +86,15 @@ commented out.
 I'd like to get the advice of someone who understands CSRF better than I on this
 change.
 
-h3. Specs
-
-h3. Stories
-
-
 h3. Views
 
 * Used escapes <%= %> in email templates (among other reasons, so courtenay's
   "'dumbass' test":http://tinyurl.com/684g9t doesn't complain)
 
-echo git ci -m '* Used escapes <%= %> in email templates (among other reasons, so courtenays
-  "dumbass test":http://tinyurl.com/684g9t doesn\'t complain)" generators/authenticated/templates/{activation.html.erb,signup.html.erb,signup_notification.html.erb}
+h3. Specs
 
+* 100% coverage (needed some access_control checks, and the http_auth stuff)
 
-controller.rb,
+h3. Stories
+
+* added them
