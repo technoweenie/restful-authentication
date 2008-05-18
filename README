@@ -1,3 +1,26 @@
+This is mrflip's fork of "technoweenie's restful-authentication":/technoweenie/restful-authentication/
+plugin. The goal is to
+
+* Modularize to match security design patterns:
+** Authentication (currently: password, browser cookie token, HTTP basic)
+** Trust metric (email validation) 
+** Authorization (stateful roles)
+* Add full RSpec and Story test suite
+* Leave a flexible framework that will play nicely with other access control / policy definition / trust metric plugins
+
+See the "wiki":http://github.com/mrflip/restful-authentication/wikis/home for notes on
+* "Security Design Patterns":Security-Patterns
+* [[Authentication]] -- Lets a visitor identify herself (and lay claim to her corresponding Roles and measure of Trust)
+* "Trust Metrics":Trustification -- Confidence we can rely on the outcomes of this visitor's actions.
+* "Authorization and Policy":Authorization -- Based on trust and identity, what actions may this visitor perform?
+* "Access Control":Access-Control -- How the Authorization policy is actually enforced in your code (hopefully without turning it into a spaghetti of if thens)
+* "Rails Security Plugins":RailsPlugins -- for Authentication, Trust, Authorization and Access Control
+
+These best versions are in the notes/ directory in the "source code":http://github.com/mrflip/restful-authentication/tree/master -- look there for the latest version.
+The wiki versions are taken (manually) from there.
+
+===========================================================================
+
 Restful Authentication Generator
 ====
 

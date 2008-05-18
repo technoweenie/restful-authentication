@@ -1,3 +1,4 @@
+# -*- coding: mule-utf-8 -*-
 module Authentication
   module ByCookieToken
 
@@ -47,6 +48,11 @@ module Authentication
         end
       end
 
+      # 
+      # Deletes the server-side record of the authentication token.  The
+      # client-side (browser cookie) and server-side (this remember_token) must
+      # always be deleted together.
+      #
       def forget_me
         self.remember_token_expires_at = nil
         self.remember_token            = nil

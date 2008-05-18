@@ -1,9 +1,8 @@
 
-Changes since fork from technoweenie's branch
-
-I've made a few security changes based on best practices recommended in
+Following best practices recommended in
 * "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
 * "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
+* http://www.coresecuritypatterns.com/patterns.htm
 
 They're described in more detail below.
 
@@ -45,8 +44,11 @@ h3. authenticated_system
 * added uniform logout! methods
 * format.any (as found in access_denied) doesn't work until
   http://dev.rubyonrails.org/changeset/8987 lands.
-* cookies, just like session tokens, should be refreshed each time we cross the
-  logged out/in barrier http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
+  
+* cookies are now refreshed each time we cross the logged out/in barrier
+  http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
+  http://palisade.plynt.com/issues/2004Jul/safe-auth-practices/
+  
 * !!!! Possibly stupid !!!
   Made current_user and logged_in? be public methods.  I did this for the worst
   possible reason -- so that I could write story steps that call it directly.
@@ -87,9 +89,32 @@ resubmiting an earlier form will.  I think it's Mostly Harmless but I've left it
 commented out.  
 
 I'd like to get the advice of someone who understands CSRF better than I on this
-change.
+change.  This says we _should_ reset the session:
 
-h3. Non-backwards compatible Changes
+  (http://tinyurl.com/5vdvuq) Regenerate session IDs upon privilege
+  changes. Most Web applications assign a session ID upon the first request for
+  a URL, even for anonymous users. If the user logs in, then the application
+  should create and assign a new session ID to the user. This not only
+  represents that the user has authenticated, but it reduces the chances of
+  eavesdropping attacks if the initial access to the application wasn't
+  conducted over SSL. It also mitigates against session fixation attacks
+  discussed earlier in the chapter, where an attacker goes to a site and gets a
+  session ID, then e-mails it to the victim and allows them to log in using the
+  ID that the attacker already knows
+
+
+
+h2. Non-backwards compatible Changes
+
+Here are a few changes that increase "Defense in Depth" but will invalidate
+existing login/passwords without a migration.
+
+* If you have an existing site, none of these changes are compelling enough to
+  warrant migrating your userbase.
+* If you are generating for a new site, all of these changes are low-impact.
+  You should apply them.
+
+h3. minor changes
 
 * login in /\w+\.\-_@/  This allows (most) email addresses and is safe for urls, database expressions (@, technically reserved in a url, will survive in most browsers)
   If you want to be more permissive:
@@ -102,7 +127,7 @@ h3. Non-backwards compatible Changes
 * Added site key to generator, users.yml.
 * Made site key generation idempotent in the most crude and hackish way
 
-h4. Site key
+h3. Site key
 
 A Site key gives additional protection against a dictionary attack if your
 DB is ever compromised.  With no site key, we store
@@ -122,7 +147,7 @@ Please note: if you change this, all the passwords will be invalidated, so DO
 keep it someplace secure.  Use the random value given or type in the lyrics to
 your favorite Jay-Z song or something; any moderately long, unpredictable text.
 
-* Stretch
+h3. Password Encryption Stretching
 
 Repeated applications of the hash make brute force (even with a compromised
 database and site key) harder, and scale with Moore's law.
@@ -166,16 +191,3 @@ h3. Stories
 
 * added them
 
-
-h3. Authentication security projects for a later date
-
-A couple little projects
-
-* Track 'failed logins this hour' and demand a captcha after say 5 failed logins
-  ("RECAPTCHA plugin.":http://agilewebdevelopment.com/plugins/recaptcha)
-  "De-proxy-ficate IP address": http://wiki.codemongers.com/NginxHttpRealIpModule
-
-* Make cookie spoofing a little harder: we set the user's cookie to
-  (remember_token), but store digest(remember_token, request_IP). A CSRF cookie
-  spoofer has to then at least also spoof the user's originating IP
-  (see "Secure Programs HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html)
