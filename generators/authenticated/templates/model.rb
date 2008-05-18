@@ -1,26 +1,8 @@
 require 'digest/sha1'
 
-# Uncomment to suit
-# RE_LOGIN_OK   = /\A[[:alnum:]][[:alnum:]\.\-_@]+\z/     # Unicode, strict
-RE_LOGIN_OK     = /\A\w[\w\.\-_@]+\z/                     # ASCII, strict
-MSG_LOGIN_BAD   = "use only letters, numbers, and .-_@ please."
-
-RE_NAME_OK      = /\A[^[:cntrl:]\\<>\/&]*\z/              # Unicode, permissive
-MSG_NAME_BAD    = "avoid non-printing characters and \\&gt;&lt;&amp;/ please."
-
-# This is purposefully imperfect -- it's just a check for bogus input. See
-# http://www.regular-expressions.info/email.html
-#RE_EMAIL_NAME   = '0-9A-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.' # technically allowed by RFC-2822
-RE_EMAIL_NAME   = '[\w\.%\+\-]+'                          # what you actually see in practice
-RE_DOMAIN_HEAD  = '(?:[A-Z0-9\-]+\.)+'
-RE_DOMAIN_TLD   = '(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum)'
-RE_EMAIL_OK     = /\A#{RE_EMAIL_NAME}@#{RE_DOMAIN_HEAD}#{RE_DOMAIN_TLD}\z/i
-MSG_EMAIL_BAD   = "should look like an email address."
-
-
 class <%= class_name %> < ActiveRecord::Base
-  # Virtual attribute for the unencrypted password
-  attr_accessor :password
+  include Authenticated
+  include Authenticated::ByPassword
 
   validates_presence_of     :login
   validates_length_of       :login,    :within => 3..40
@@ -35,14 +17,9 @@ class <%= class_name %> < ActiveRecord::Base
   validates_uniqueness_of   :email,    :case_sensitive => false
   validates_format_of       :email,    :with => RE_EMAIL_OK, :message => MSG_EMAIL_BAD
 
-  validates_presence_of     :password,                   :if => :password_required?
-  validates_presence_of     :password_confirmation,      :if => :password_required?
-  validates_confirmation_of :password,                   :if => :password_required?
-  validates_length_of       :password, :within => 6..40, :if => :password_required?
-  before_save :encrypt_password
-  
   <% if options[:include_activation] && !options[:stateful] %>before_create :make_activation_code <% end %>
 
+  # HACK HACK HACK -- how to do attr_accessible from here?
   # prevents a user from submitting a crafted form that bypasses activation
   # anything else you want your user to change should be added here.
   attr_accessible :login, :email, :name, :password, :password_confirmation
@@ -78,7 +55,7 @@ class <%= class_name %> < ActiveRecord::Base
   end
 <% elsif options[:include_activation] %>
   # Activates the user in the database.
-  def activate
+  def activate!
     @activated = true
     self.activated_at = Time.now.utc
     self.activation_code = nil
@@ -88,8 +65,8 @@ class <%= class_name %> < ActiveRecord::Base
   def active?
     # the existence of an activation code means they have not activated yet
     activation_code.nil?
-  end
-<% end %>
+  end<% end %>
+
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
     u = <% 
@@ -98,10 +75,6 @@ class <%= class_name %> < ActiveRecord::Base
     else %>find_by_login(login)<% 
     end %> # need to get the salt
     u && u.authenticated?(password) ? u : nil
-  end
-
-  def authenticated?(password)
-    crypted_password == encrypt(password)
   end
 
   def remember_token?
@@ -146,22 +119,15 @@ class <%= class_name %> < ActiveRecord::Base
 <% end -%>
 
   protected
-    # before filter 
-    def encrypt_password
-      return if password.blank?
-      self.salt = self.class.make_token if new_record?
-      self.crypted_password = encrypt(password)
-    end
-    def password_required?
-      crypted_password.blank? || !password.blank?
-    end
-    <% if options[:include_activation] %>
+<% if options[:include_activation] -%>
     def make_activation_code
-<% if options[:stateful] -%>
-      self.deleted_at = nil<% end %>
+  <% if options[:stateful] -%>
+      self.deleted_at = nil
+  <% end -%>
       self.activation_code = self.class.make_token
-    end<% end %>
-    <% if options[:stateful] %>
+    end
+<% end %>
+<% if options[:stateful] -%>
     def do_delete
       self.deleted_at = Time.now.utc
     end
@@ -170,34 +136,7 @@ class <%= class_name %> < ActiveRecord::Base
       @activated = true
       self.activated_at = Time.now.utc
       self.deleted_at = self.activation_code = nil
-    end<% end %>
+    end
+<% end %>
 
-    # Encrypts the password with the user salt
-    def encrypt(password)
-      self.class.password_digest(password, salt)
-    end
-
-    # Backwards-compatible; replace call to "password_digest" with "old_password_digest"
-    def self.old_password_digest(password, salt)
-      Digest::SHA1.hexdigest("--#{salt}--#{password}--")
-    end
-    
-    # This provides a modest increased defense against a dictionary attack if
-    # your db were ever compromised, but will invalidate existing passwords.
-    # See the README.
-    def self.password_digest(password, salt)
-      digest = REST_AUTH_SITE_KEY
-      REST_AUTH_DIGEST_STRETCHES.times do
-        digest = secure_digest(salt, digest, password, REST_AUTH_SITE_KEY)
-      end
-      digest
-    end
-    
-    def self.secure_digest(*args)
-      Digest::SHA1.hexdigest(args.flatten.join('&&'))
-    end
-
-    def self.make_token
-      secure_digest(Time.now, (1..10).map{ rand.to_s })
-    end 
 end

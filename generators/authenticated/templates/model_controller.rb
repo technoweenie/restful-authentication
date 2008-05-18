@@ -17,7 +17,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     @<%= file_name %> = <%= class_name %>.new(params[:<%= file_name %>])
 <% if options[:stateful] -%>
     @<%= file_name %>.register! if @<%= file_name %> && @<%= file_name %>.valid?
-    success = @<%= file_name %> && @<%= file_name %>.register?
+    success = @<%= file_name %> && @<%= file_name %>.valid?
 <% else -%>
     success = @<%= file_name %> && @<%= file_name %>.save
 <% end -%>
@@ -41,7 +41,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     <%= file_name %> = <%= class_name %>.find_by_activation_code(params[:activation_code]) unless params[:activation_code].blank?
     case
     when (!params[:activation_code].blank?) && <%= file_name %> && !<%= file_name %>.active?
-      <%= file_name %>.activate
+      <%= file_name %>.activate!
       flash[:notice] = "Signup complete! Please sign in to continue."
       redirect_to new_<%= controller_singular_name %>_path
     when params[:activation_code].blank?
