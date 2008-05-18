@@ -1,4 +1,4 @@
-require 'restful_authentication/rails_commands'
+require File.expand_path(File.dirname(__FILE__) + "/lib/insert_routes.rb")
 require 'digest/sha1'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
@@ -308,9 +308,9 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   # seed it with reasonable defaults otherwise
   #
   def load_or_initialize_site_keys
-    begin 
-      require RAILS_ROOT + '/' + site_keys_file
-    rescue Exception ; true end # don't complain
+    # begin 
+    #   require RAILS_ROOT + '/' + site_keys_file
+    # rescue Exception ; true end # don't complain
     $rest_auth_site_key_from_generator         = (
       (defined? REST_AUTH_SITE_KEY)         ? REST_AUTH_SITE_KEY : make_token)
     $rest_auth_digest_stretches_from_generator = (
