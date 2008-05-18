@@ -1,4 +1,4 @@
-module Authentication
+module Authorization
   module StatefulRoles
     unless Object.constants.include? "STATEFUL_ROLES_CONSTANTS_DEFINED"
       STATEFUL_ROLES_CONSTANTS_DEFINED = 'yup' # sorry for the C idiom

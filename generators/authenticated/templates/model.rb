@@ -3,6 +3,7 @@ require 'digest/sha1'
 class <%= class_name %> < ActiveRecord::Base
   include Authentication
   include Authentication::ByPassword
+  include Authentication::ByCookieToken
 <% if options[:stateful] -%>
   include Authorization::StatefulRoles<% end %>
 
@@ -26,7 +27,7 @@ class <%= class_name %> < ActiveRecord::Base
   # anything else you want your user to change should be added here.
   attr_accessible :login, :email, :name, :password, :password_confirmation
 
-<% if options[:include_activation] %>
+<% if options[:include_activation] && !options[:stateful] %>
   # Activates the user in the database.
   def activate!
     @activated = true
