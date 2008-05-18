@@ -1,3 +1,6 @@
+
+Changes since fork from technoweenie's branch
+
 I've made a few security changes based on best practices recommended in
 * "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
 * "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
@@ -86,6 +89,70 @@ commented out.
 I'd like to get the advice of someone who understands CSRF better than I on this
 change.
 
+h3. Non-backwards compatible Changes
+
+* login in /\w+\.\-_@/  This allows (most) email addresses and is safe for urls, database expressions (@, technically reserved in a url, will survive in most browsers)
+  If you want to be more permissive:
+  "URL-legal characters":http://www.blooberry.com/indexdot/html/topics/urlencoding.htm are <nowiki>-_.!~*'()</nowiki>
+  "XML-legal characters":http://www.sklar.com/blog/archives/96-XML-vs.-Control-Characters.html are <nowiki>Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]</nowiki>
+  "Email-address legal characters":http://tools.ietf.org/html/rfc2822#section-3.4.1 are <nowiki>0-9a-zA-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.</nowiki> but see "this discussion of what is sane"http://www.regular-expressions.info/email.html (as opposed to legal)
+* put length constraints in migration too
+* password in 6, 40
+* Trivial email validation
+* Added site key to generator, users.yml.
+* Made site key generation idempotent in the most crude and hackish way
+
+h4. Site key
+
+A Site key gives additional protection against a dictionary attack if your
+DB is ever compromised.  With no site key, we store
+  DB_password = hash(user_password, DB_user_salt)
+If your database were to be compromised you'd be vulnerable to a dictionary
+attack on all your stupid users' passwords.  With a site key, we store
+  DB_password = hash(user_password, DB_user_salt, Code_site_key)
+That means an attacker needs access to both your site's code *and* its
+database to mount an "offline dictionary attack.":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
+
+It's probably of minor importance, but recommended by best practices: 'defense
+in depth'.  Needless to say, if you upload this to github or the youtubes or
+otherwise place it in public view you'll kinda defeat the point.  Your users'
+passwords are still secure, and the world won't end, but defense_in_depth -= 1.
+
+Please note: if you change this, all the passwords will be invalidated, so DO
+keep it someplace secure.  Use the random value given or type in the lyrics to
+your favorite Jay-Z song or something; any moderately long, unpredictable text.
+
+* Stretch
+
+Repeated applications of the hash make brute force (even with a compromised
+database and site key) harder, and scale with Moore's law.
+
+  bq. "To squeeze the most security out of a limited-entropy password or
+  passphrase, we can use two techniques [salting and stretching]... that are so
+  simple and obvious that they should be used in every password system.  There
+  is really no excuse not to use them. ... Choose stretching factor so computing
+  K from (salt, passwd) takes 200-1000 ms. Store r with the user's password, and
+  increase it as computers get faster." -- http://tinyurl.com/37lb73
+  Practical Security (Ferguson & Scheier) p350
+
+Now, adding even a 0.2s delay to page requests isn't justifiable for most online
+applications, and storing r is unnecessary (at least on your first design
+iteration).  But 
+  On a 1G Slicehost already under moderate load:
+  irb(main):005:0> puts Time.now; (10**6).times{ secure_digest(Time.now, rand) }; puts Time.now
+  Fri May 16 08:26:16 +0000 2008
+  Fri May 16 08:30:58 +0000 2008
+  => 280s/1M ~= 0.000_3 ms / digest
+A modest 10 (the default here) foldings makes brute forcing, even given the site
+key and database, 10 times harder at a 3ms penalty.  An app that otherwise
+serves 100 reqs/s is reduced to 78 signin reqs/s; an app that does 10reqs/s is
+reduced to 9.7 signin reqs/s
+
+More:
+* http://www.owasp.org/index.php/Hashing_Java
+* "An Illustrated Guide to Cryptographic Hashes":http://www.unixwiz.net/techtips/iguide-crypto-hashes.html
+
+
 h3. Views
 
 * Used escapes <%= %> in email templates (among other reasons, so courtenay's
@@ -98,3 +165,17 @@ h3. Specs
 h3. Stories
 
 * added them
+
+
+h3. Authentication security projects for a later date
+
+A couple little projects
+
+* Track 'failed logins this hour' and demand a captcha after say 5 failed logins
+  ("RECAPTCHA plugin.":http://agilewebdevelopment.com/plugins/recaptcha)
+  "De-proxy-ficate IP address": http://wiki.codemongers.com/NginxHttpRealIpModule
+
+* Make cookie spoofing a little harder: we set the user's cookie to
+  (remember_token), but store digest(remember_token, request_IP). A CSRF cookie
+  spoofer has to then at least also spoof the user's originating IP
+  (see "Secure Programs HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html)

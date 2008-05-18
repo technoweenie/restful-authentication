@@ -1,33 +1,26 @@
-<% ## this code must match that in templates/model.rb
-   require 'digest/sha1'
-   def password_digest(password, salt)
-     Digest::SHA1.hexdigest("--#{salt}--#{password}--")
-   end
-   def make_token
-     Digest::SHA1.hexdigest([Time.now, (1..10).map{ rand.to_s }].flatten.join('&&'))
-   end
-   def make_fake_token
-     @fake_token_counter ||= 0
-     @fake_token_counter +=  1
-     Digest::SHA1.hexdigest(@fake_token_counter.to_s)
-   end
-   salts   = (1..2).map{ make_fake_token }
-   passwds = salts.map{ |salt| password_digest('test', salt) }
+<%
+  ## this code must match that in templates/model.rb
+  require 'digest/sha1'
+  def make_fake_token
+    @fake_token_counter ||= 0
+    @fake_token_counter +=  1
+    Digest::SHA1.hexdigest(@fake_token_counter.to_s)
+  end
+  salts   = (1..2).map{ make_fake_token }
+  passwds = salts.map{ |salt| password_digest('monkey', salt) }
 -%>
 
 quentin:
   id:                        1
   login:                     quentin
   email:                     quentin@example.com
-  salt:                      <%= salts[0] %>
-  crypted_password:          <%= passwds[0] %> # test
+  salt:                      <%= salts[0]   %> # SHA1('0')
+  crypted_password:          <%= passwds[0] %> # 'monkey'
   created_at:                <%%= 5.days.ago.to_s :db  %>
   remember_token_expires_at: <%%= 1.days.from_now.to_s %>
   remember_token:            <%= make_fake_token %>
 <% if options[:include_activation] -%>
-                             # User with activation code and activated_at is ill-defined.
-                             # Is there a reason for this? I've commented it out.
-  activation_code:           # <%= make_fake_token %>
+  activation_code:           
   activated_at:              <%%= 5.days.ago.to_s :db %>
 <% end -%>
 <% if options[:stateful] -%>
@@ -38,8 +31,8 @@ aaron:
   id:                        2
   login:                     aaron
   email:                     aaron@example.com
-  salt:                      <%= salts[1]   %>
-  crypted_password:          <%= passwds[1] %> # test
+  salt:                      <%= salts[1]   %> # SHA1('1')
+  crypted_password:          <%= passwds[1] %> # 'monkey'
   created_at:                <%%= 1.days.ago.to_s :db %>
   remember_token_expires_at: 
   remember_token:            

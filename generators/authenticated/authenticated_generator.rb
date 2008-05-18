@@ -1,4 +1,5 @@
 require 'restful_authentication/rails_commands'
+require 'digest/sha1'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
                   :skip_routes => false,
@@ -53,6 +54,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     else
       @model_controller_class_name = "#{@model_controller_class_nesting}::#{@model_controller_class_name_without_nesting}"
     end
+    
+    load_or_initialize_site_keys()
   end
 
   def manifest
@@ -76,6 +79,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       m.directory File.join('app/controllers', model_controller_class_path)
       m.directory File.join('app/helpers', model_controller_class_path)
       m.directory File.join('app/views', model_controller_class_path, model_controller_file_name)
+      m.directory File.join('config/initializers')
 
       if @rspec
         m.directory File.join('spec/controllers', controller_class_path)
@@ -120,6 +124,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
 
       m.template 'authenticated_test_helper.rb',
                   File.join('lib', 'authenticated_test_helper.rb')
+
+      m.template 'site_keys.rb', site_keys_file
 
       if @rspec
         # RSpec Specs
@@ -281,6 +287,38 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
 
   def has_rspec?
     options[:rspec] || (File.exist?('spec') && File.directory?('spec'))
+  end
+  def secure_digest(*args)
+    Digest::SHA1.hexdigest(args.flatten.join('&&'))
+  end
+  def make_token
+    secure_digest(Time.now, (1..10).map{ rand.to_s })
+  end
+  def password_digest(password, salt)
+    digest = $rest_auth_site_key_from_generator
+    $rest_auth_digest_stretches_from_generator.times do
+      digest = secure_digest(salt, digest, password, $rest_auth_site_key_from_generator)
+    end
+    digest
+  end
+
+  #
+  # Try to be idempotent:
+  # pull in the existing site key if any,
+  # seed it with reasonable defaults otherwise
+  #
+  def load_or_initialize_site_keys
+    begin 
+      require RAILS_ROOT + '/' + site_keys_file
+    rescue Exception ; true end # don't complain
+    $rest_auth_site_key_from_generator         = (
+      (defined? REST_AUTH_SITE_KEY)         ? REST_AUTH_SITE_KEY : make_token)
+    $rest_auth_digest_stretches_from_generator = (
+      (defined? REST_AUTH_DIGEST_STRETCHES) ? REST_AUTH_DIGEST_STRETCHES : 10)  
+    puts [$rest_auth_site_key_from_generator, $rest_auth_digest_stretches_from_generator]
+  end  
+  def site_keys_file
+    File.join("config", "initializers", "site_keys.rb")
   end
   
   protected

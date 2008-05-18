@@ -62,12 +62,12 @@ describe <%= model_controller_class_name %>Controller do
   
   <% if options[:include_activation] %>
   it 'activates user' do
-    <%= class_name %>.authenticate('aaron', 'test').should be_nil
+    <%= class_name %>.authenticate('aaron', 'monkey').should be_nil
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code
     response.should redirect_to('/<%= controller_file_path %>/new')
     flash[:notice].should_not be_nil
     flash[:error ].should     be_nil
-    <%= class_name %>.authenticate('aaron', 'test').should == <%= table_name %>(:aaron)
+    <%= class_name %>.authenticate('aaron', 'monkey').should == <%= table_name %>(:aaron)
   end
   
   it 'does not activate user without key' do
@@ -90,7 +90,7 @@ describe <%= model_controller_class_name %>Controller do
   
   def create_<%= file_name %>(options = {})
     post :create, :<%= file_name %> => { :login => 'quire', :email => 'quire@example.com',
-      :password => 'quire', :password_confirmation => 'quire' }.merge(options)
+      :password => 'quire69', :password_confirmation => 'quire69' }.merge(options)
   end
 end
 

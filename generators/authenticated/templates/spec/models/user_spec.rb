@@ -1,3 +1,4 @@
+# -*- coding: mule-utf-8 -*-
 require File.dirname(__FILE__) + '/../spec_helper'
 
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead.
@@ -33,11 +34,39 @@ describe <%= class_name %> do
     end
 <% end %>  end
 
+  #              
+  # Validations
+  #
+ 
   it 'requires login' do
     lambda do
       u = create_<%= file_name %>(:login => nil)
       u.errors.on(:login).should_not be_nil
     end.should_not change(<%= class_name %>, :count)
+  end
+
+  describe 'allows legitimate logins:' do
+    ['123', '1234567890_234567890_234567890_234567890', 
+     'hello.-_there@funnychar.com'].each do |login_str|
+      it "'#{login_str}'" do
+        lambda do
+          u = create_<%= file_name %>(:login => login_str)
+          u.errors.on(:login).should     be_nil
+        end.should change(<%= class_name %>, :count).by(1)
+      end
+    end
+  end
+  describe 'disallows illegitimate logins:' do
+    ['12', '1234567890_234567890_234567890_234567890_', "tab\t", "newline\n",
+     "Iñtërnâtiônàlizætiøn hasn't happened to ruby 1.8 yet", 
+     'semicolon;', 'quote"', 'tick\'', 'backtick`', 'percent%', 'plus+', 'space '].each do |login_str|
+      it "'#{login_str}'" do
+        lambda do
+          u = create_<%= file_name %>(:login => login_str)
+          u.errors.on(:login).should_not be_nil
+        end.should_not change(<%= class_name %>, :count)
+      end
+    end
   end
 
   it 'requires password' do
@@ -61,6 +90,61 @@ describe <%= class_name %> do
     end.should_not change(<%= class_name %>, :count)
   end
 
+  describe 'allows legitimate emails:' do
+    ['foo@bar.com', 'foo@newskool-tld.museum', 'foo@twoletter-tld.de', 'foo@nonexistant-tld.qq',
+     'r@a.wk', '1234567890-234567890-234567890-234567890-234567890-234567890-234567890-234567890-234567890@gmail.com',
+     'hello.-_there@funnychar.com', 'uucp%addr@gmail.com', 'hello+routing-str@gmail.com',
+     'domain@can.haz.many.sub.doma.in', 
+    ].each do |email_str|
+      it "'#{email_str}'" do
+        lambda do
+          u = create_<%= file_name %>(:email => email_str)
+          u.errors.on(:email).should     be_nil
+        end.should change(<%= class_name %>, :count).by(1)
+      end
+    end
+  end
+  describe 'disallows illegitimate emails' do
+    ['!!@nobadchars.com', 'foo@no-rep-dots..com', 'foo@badtld.xxx', 'foo@toolongtld.abcdefg',
+     'Iñtërnâtiônàlizætiøn@hasnt.happened.to.email', 'need.domain.and.tld@de', "tab\t", "newline\n",
+     'r@.wk', '1234567890-234567890-234567890-234567890-234567890-234567890-234567890-234567890-234567890@gmail2.com',
+     # these are technically allowed but not seen in practice:
+     'uucp!addr@gmail.com', 'semicolon;@gmail.com', 'quote"@gmail.com', 'tick\'@gmail.com', 'backtick`@gmail.com', 'space @gmail.com', 'bracket<@gmail.com', 'bracket>@gmail.com'
+    ].each do |email_str|
+      it "'#{email_str}'" do
+        lambda do
+          u = create_<%= file_name %>(:email => email_str)
+          u.errors.on(:email).should_not be_nil
+        end.should_not change(<%= class_name %>, :count)
+      end
+    end
+  end
+
+  describe 'allows legitimate names:' do
+    ['Andre The Giant (7\'4", 520 lb.) -- has a posse', 
+     '', '1234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890',
+    ].each do |name_str|
+      it "'#{name_str}'" do
+        lambda do
+          u = create_<%= file_name %>(:name => name_str)
+          u.errors.on(:name).should     be_nil
+        end.should change(<%= class_name %>, :count).by(1)
+      end
+    end
+  end
+  describe "disallows illegitimate names #{REST_AUTH_SITE_KEY}" do
+    ["tab\t", "newline\n",
+     '1234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_',
+     ].each do |name_str|
+      it "'#{name_str}'" do
+        lambda do
+          u = create_<%= file_name %>(:name => name_str)
+          u.errors.on(:name).should_not be_nil
+        end.should_not change(<%= class_name %>, :count)
+      end
+    end
+  end
+
   it 'resets password' do
     <%= table_name %>(:quentin).update_attributes(:password => 'new password', :password_confirmation => 'new password')
     <%= class_name %>.authenticate('quentin', 'new password').should == <%= table_name %>(:quentin)
@@ -68,12 +152,24 @@ describe <%= class_name %> do
 
   it 'does not rehash password' do
     <%= table_name %>(:quentin).update_attributes(:login => 'quentin2')
-    <%= class_name %>.authenticate('quentin2', 'test').should == <%= table_name %>(:quentin)
+    <%= class_name %>.authenticate('quentin2', 'monkey').should == <%= table_name %>(:quentin)
   end
 
+  #
+  # Authentication
+  #
+
   it 'authenticates <%= file_name %>' do
-    <%= class_name %>.authenticate('quentin', 'test').should == <%= table_name %>(:quentin)
+    <%= class_name %>.authenticate('quentin', 'monkey').should == <%= table_name %>(:quentin)
   end
+
+  it "doesn't authenticates <%= file_name %> with bad password" do
+    <%= class_name %>.authenticate('quentin', 'monkey').should == <%= table_name %>(:quentin)
+  end
+
+  #
+  # Authentication
+  #
 
   it 'sets remember token' do
     <%= table_name %>(:quentin).remember_me
@@ -129,7 +225,7 @@ describe <%= class_name %> do
 
   it 'does not authenticate suspended <%= file_name %>' do
     <%= table_name %>(:quentin).suspend!
-    <%= class_name %>.authenticate('quentin', 'test').should_not == <%= table_name %>(:quentin)
+    <%= class_name %>.authenticate('quentin', 'monkey').should_not == <%= table_name %>(:quentin)
   end
 
   it 'deletes <%= file_name %>' do
@@ -167,7 +263,7 @@ describe <%= class_name %> do
 <% end %>
 protected
   def create_<%= file_name %>(options = {})
-    record = <%= class_name %>.new({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
+    record = <%= class_name %>.new({ :login => 'quire', :email => 'quire@example.com', :password => 'quire69', :password_confirmation => 'quire69' }.merge(options))
     record.<% if options[:stateful] %>register! if record.valid?<% else %>save<% end %>
     record
   end

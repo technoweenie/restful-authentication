@@ -1,21 +1,52 @@
 require 'digest/sha1'
+
+# Uncomment to suit
+# RE_LOGIN_OK   = /\A[[:alnum:]][[:alnum:]\.\-_@]+\z/     # Unicode, strict
+RE_LOGIN_OK     = /\A\w[\w\.\-_@]+\z/                     # ASCII, strict
+MSG_LOGIN_BAD   = "use only letters, numbers, and .-_@ please."
+
+RE_NAME_OK      = /\A[^[:cntrl:]\\<>\/&]*\z/              # Unicode, permissive
+MSG_NAME_BAD    = "avoid non-printing characters and \\&gt;&lt;&amp;/ please."
+
+# This is purposefully imperfect -- it's just a check for bogus input. See
+# http://www.regular-expressions.info/email.html
+#RE_EMAIL_NAME   = '0-9A-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.' # technically allowed by RFC-2822
+RE_EMAIL_NAME   = '[\w\.%\+\-]+'                          # what you actually see in practice
+RE_DOMAIN_HEAD  = '(?:[A-Z0-9\-]+\.)+'
+RE_DOMAIN_TLD   = '(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum)'
+RE_EMAIL_OK     = /\A#{RE_EMAIL_NAME}@#{RE_DOMAIN_HEAD}#{RE_DOMAIN_TLD}\z/i
+MSG_EMAIL_BAD   = "should look like an email address."
+
+
 class <%= class_name %> < ActiveRecord::Base
   # Virtual attribute for the unencrypted password
   attr_accessor :password
 
-  validates_presence_of     :login, :email
+  validates_presence_of     :login
+  validates_length_of       :login,    :within => 3..40
+  validates_uniqueness_of   :login,    :case_sensitive => false
+  validates_format_of       :login,    :with => RE_LOGIN_OK, :message => MSG_LOGIN_BAD
+
+  validates_format_of       :name,     :with => RE_NAME_OK,  :message => MSG_NAME_BAD, :allow_nil => true
+  validates_length_of       :name,     :maximum => 100
+
+  validates_presence_of     :email
+  validates_length_of       :email,    :within => 6..100 #r@a.wk
+  validates_uniqueness_of   :email,    :case_sensitive => false
+  validates_format_of       :email,    :with => RE_EMAIL_OK, :message => MSG_EMAIL_BAD
+
   validates_presence_of     :password,                   :if => :password_required?
   validates_presence_of     :password_confirmation,      :if => :password_required?
-  validates_length_of       :password, :within => 4..40, :if => :password_required?
   validates_confirmation_of :password,                   :if => :password_required?
-  validates_length_of       :login,    :within => 3..40
-  validates_length_of       :email,    :within => 3..100
-  validates_uniqueness_of   :login, :email, :case_sensitive => false
+  validates_length_of       :password, :within => 6..40, :if => :password_required?
   before_save :encrypt_password
+  
   <% if options[:include_activation] && !options[:stateful] %>before_create :make_activation_code <% end %>
+
   # prevents a user from submitting a crafted form that bypasses activation
   # anything else you want your user to change should be added here.
-  attr_accessible :login, :email, :password, :password_confirmation
+  attr_accessible :login, :email, :name, :password, :password_confirmation
+
 <% if options[:stateful] %>
   acts_as_state_machine :initial => :pending
   state :passive
@@ -67,11 +98,6 @@ class <%= class_name %> < ActiveRecord::Base
     else %>find_by_login(login)<% 
     end %> # need to get the salt
     u && u.authenticated?(password) ? u : nil
-  end
-
-  # Encrypts the password with the user salt
-  def encrypt(password)
-    self.class.password_digest(password, salt)
   end
 
   def authenticated?(password)
@@ -126,7 +152,6 @@ class <%= class_name %> < ActiveRecord::Base
       self.salt = self.class.make_token if new_record?
       self.crypted_password = encrypt(password)
     end
-      
     def password_required?
       crypted_password.blank? || !password.blank?
     end
@@ -147,11 +172,32 @@ class <%= class_name %> < ActiveRecord::Base
       self.deleted_at = self.activation_code = nil
     end<% end %>
 
-    def self.password_digest(password, salt)
+    # Encrypts the password with the user salt
+    def encrypt(password)
+      self.class.password_digest(password, salt)
+    end
+
+    # Backwards-compatible; replace call to "password_digest" with "old_password_digest"
+    def self.old_password_digest(password, salt)
       Digest::SHA1.hexdigest("--#{salt}--#{password}--")
+    end
+    
+    # This provides a modest increased defense against a dictionary attack if
+    # your db were ever compromised, but will invalidate existing passwords.
+    # See the README.
+    def self.password_digest(password, salt)
+      digest = REST_AUTH_SITE_KEY
+      REST_AUTH_DIGEST_STRETCHES.times do
+        digest = secure_digest(salt, digest, password, REST_AUTH_SITE_KEY)
+      end
+      digest
+    end
+    
+    def self.secure_digest(*args)
+      Digest::SHA1.hexdigest(args.flatten.join('&&'))
     end
 
     def self.make_token
-      Digest::SHA1.hexdigest([Time.now, (1..10).map{ rand.to_s }].flatten.join('&&'))
+      secure_digest(Time.now, (1..10).map{ rand.to_s })
     end 
 end
