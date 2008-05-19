@@ -1,3 +1,5 @@
+See also
+* "Trustlet Wiki":http://www.trustlet.org/wiki
 
 Potential Ingredients for a trust metric
 

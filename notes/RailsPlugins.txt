@@ -12,9 +12,6 @@ From
 * http://agilewebdevelopment.com/plugins/tag/security
 * http://www.vaporbase.com/postings/Authorization_in_Rails
 
-
-== maybe ==================================================================
-
 * http://github.com/jbarket/restful-authorization/tree/master
 
 * http://agilewebdevelopment.com/plugins/rolerequirement
