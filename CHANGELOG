@@ -1,37 +1,45 @@
+h1. Internal Changes to code
 
-Following best practices recommended in
-* "The OWASP Guide to Building Secure Web Applications":http://www.owasp.org/index.php/Category:OWASP_Guide_Project
-* "Secure Programming for Linux and Unix HOWTO":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
-* http://www.coresecuritypatterns.com/patterns.htm
+As always, this is just a copy-and-pasted version of the CHANGELOG file in the source code tree.
 
-They're described in more detail below.
+h2. Changes for the May, 2008 version of restful-authentication
 
-h2. Changes to session_controller
+h3. Changes to user model
+
+* recently_activated? belongs only if stateful
+* Gave migration a 40-char limit on remember_token & an index on users by login
+* **Much** stricter login and email validation
+* put length constraints in migration too
+* password in 6, 40
+* salt and remember_token now much less predictability
+
+h3. Changes to session_controller
 
 * use uniform logout function
+* use uniform remember_cookie functions
 * avoid calling logged_in? which will auto-log-you-in (safe in the face of
-  logout! call, but idiot-proof
-* log in is where reset_session is really needed -- wherever it goes, it has to
-  be in front of the current_user= call
-* using uniform remember_cookie functions
+  logout! call, but idiot-proof)
+* Moved reset_session into only the "now logged in" branch
+** wherever it goes, it has to be in front of the current_user= call
+** See more in README-Tradeoffs.txt
 * made a place to take action on failed login attempt
 * recycle login and remember_me setting on failed login
 * nil'ed out the password field in 'new' view
 
 h3. Changes to users_controller
 
-* made the implicit login only happen for non-activationed sites
-* made logout / session_reset'ing uniform across controllers
-* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
 * use uniform logout function
+* use uniform remember_cookie functions
+* Moved reset_session into only the "now logged in" branch
+** wherever it goes, it has to be in front of the current_user= call
+** See more in README-Tradeoffs.txt
+* made the implicit login only happen for non-activationed sites
+* On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
 * more descriptive error messages in activate()
-* don't auto-login on activate.  If the plugin is going to, there needs to be a
-  single point of entry among session/new, users/new and users/activate.
 
 h3. users_helper
 
-* link_to_user, link_to_current_user, link_to_signin_with_IP convenience
-  functions
+* link_to_user, link_to_current_user, link_to_signin_with_IP 
 * if_authorized(action, resource, &block) view function (with appropriate
   warning)
 
@@ -39,12 +47,11 @@ h3. authenticated_system
 
 * Made authorized? take optional arguments action=nil, resource=nil, *args
   This makes its signature better match traditional approaches to access control
-  eg Reference Monitor in \"Security Patterns\":http://www.securitypatterns.org/patterns.html)
+  eg Reference Monitor in "Security Patterns":http://www.securitypatterns.org/patterns.html)
 * authorized? should be a helper too
 * added uniform logout! methods
 * format.any (as found in access_denied) doesn't work until
   http://dev.rubyonrails.org/changeset/8987 lands.
-  
 * cookies are now refreshed each time we cross the logged out/in barrier
   http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
   http://palisade.plynt.com/issues/2004Jul/safe-auth-practices/
@@ -56,138 +63,13 @@ h3. authenticated_system
   exposure as helper methods.  But if there's a less kludgy fix please educate
   me.
 
-h3. Changes to model
-
-* recently_activated? belongs only if stateful
-* Gave migration a 40-char limit on remember_token & an index on users by login
-
-h4. Token generation
-
-The salt and the remember_token should be generated from completely
-unpredictable, irreversible input.  Using the user's email and Time.now leave
-the improbable but feasible attack of watching a person (whose email you've
-captured) log in with 'remember me', then replaying the hash of their email and
-times +/- a few seconds.  I made salt, activation_code and remember_token calls
-all use the same call, and I increased the entropy of that call.
-
-h4. Token regeneration
-
-The session and the remember_token should both be expired and regenerated
-every time we cross the logged out / logged in barrier by either password
-or cookie.  ("To reduce the risk from session hijacking":http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
-and brute force attacks, the HTTP server can seamlessly expire and
-regenerate tokens. This decreases the window of opportunity for a replay or
-brute force attack.)
-
-h4. Session resetting
-
-I moved the reset_session call in the session controller (and the
-users_controller on signup) into the 'success' path -- the CSRF can't do
-anything until the user logs in. Since a redirect follows, it doesn't give
-request-forgery crapstains going forward, though hitting back button and
-resubmiting an earlier form will.  I think it's Mostly Harmless but I've left it
-commented out.  
-
-I'd like to get the advice of someone who understands CSRF better than I on this
-change.  This says we _should_ reset the session:
-
-  (http://tinyurl.com/5vdvuq) Regenerate session IDs upon privilege
-  changes. Most Web applications assign a session ID upon the first request for
-  a URL, even for anonymous users. If the user logs in, then the application
-  should create and assign a new session ID to the user. This not only
-  represents that the user has authenticated, but it reduces the chances of
-  eavesdropping attacks if the initial access to the application wasn't
-  conducted over SSL. It also mitigates against session fixation attacks
-  discussed earlier in the chapter, where an attacker goes to a site and gets a
-  session ID, then e-mails it to the victim and allows them to log in using the
-  ID that the attacker already knows
-
-
-
-h2. Non-backwards compatible Changes
-
-Here are a few changes that increase "Defense in Depth" but will invalidate
-existing login/passwords without a migration.
-
-* If you have an existing site, none of these changes are compelling enough to
-  warrant migrating your userbase.
-* If you are generating for a new site, all of these changes are low-impact.
-  You should apply them.
-
-h3. minor changes
-
-* login in /\w+\.\-_@/  This allows (most) email addresses and is safe for urls, database expressions (@, technically reserved in a url, will survive in most browsers)
-  If you want to be more permissive:
-  "URL-legal characters":http://www.blooberry.com/indexdot/html/topics/urlencoding.htm are <nowiki>-_.!~*'()</nowiki>
-  "XML-legal characters":http://www.sklar.com/blog/archives/96-XML-vs.-Control-Characters.html are <nowiki>Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]</nowiki>
-  "Email-address legal characters":http://tools.ietf.org/html/rfc2822#section-3.4.1 are <nowiki>0-9a-zA-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.</nowiki> but see "this discussion of what is sane"http://www.regular-expressions.info/email.html (as opposed to legal)
-* put length constraints in migration too
-* password in 6, 40
-* Trivial email validation
-* Added site key to generator, users.yml.
-* Made site key generation idempotent in the most crude and hackish way
-
-h3. Site key
-
-A Site key gives additional protection against a dictionary attack if your
-DB is ever compromised.  With no site key, we store
-  DB_password = hash(user_password, DB_user_salt)
-If your database were to be compromised you'd be vulnerable to a dictionary
-attack on all your stupid users' passwords.  With a site key, we store
-  DB_password = hash(user_password, DB_user_salt, Code_site_key)
-That means an attacker needs access to both your site's code *and* its
-database to mount an "offline dictionary attack.":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
-
-It's probably of minor importance, but recommended by best practices: 'defense
-in depth'.  Needless to say, if you upload this to github or the youtubes or
-otherwise place it in public view you'll kinda defeat the point.  Your users'
-passwords are still secure, and the world won't end, but defense_in_depth -= 1.
-
-Please note: if you change this, all the passwords will be invalidated, so DO
-keep it someplace secure.  Use the random value given or type in the lyrics to
-your favorite Jay-Z song or something; any moderately long, unpredictable text.
-
-h3. Password Encryption Stretching
-
-Repeated applications of the hash make brute force (even with a compromised
-database and site key) harder, and scale with Moore's law.
-
-  bq. "To squeeze the most security out of a limited-entropy password or
-  passphrase, we can use two techniques [salting and stretching]... that are so
-  simple and obvious that they should be used in every password system.  There
-  is really no excuse not to use them. ... Choose stretching factor so computing
-  K from (salt, passwd) takes 200-1000 ms. Store r with the user's password, and
-  increase it as computers get faster." -- http://tinyurl.com/37lb73
-  Practical Security (Ferguson & Scheier) p350
-
-Now, adding even a 0.2s delay to page requests isn't justifiable for most online
-applications, and storing r is unnecessary (at least on your first design
-iteration).  But 
-  On a 1G Slicehost already under moderate load:
-  irb(main):005:0> puts Time.now; (10**6).times{ secure_digest(Time.now, rand) }; puts Time.now
-  Fri May 16 08:26:16 +0000 2008
-  Fri May 16 08:30:58 +0000 2008
-  => 280s/1M ~= 0.000_3 ms / digest
-A modest 10 (the default here) foldings makes brute forcing, even given the site
-key and database, 10 times harder at a 3ms penalty.  An app that otherwise
-serves 100 reqs/s is reduced to 78 signin reqs/s; an app that does 10reqs/s is
-reduced to 9.7 signin reqs/s
-
-More:
-* http://www.owasp.org/index.php/Hashing_Java
-* "An Illustrated Guide to Cryptographic Hashes":http://www.unixwiz.net/techtips/iguide-crypto-hashes.html
-
-
-h3. Views
+h3. Other
 
 * Used escapes <%= %> in email templates (among other reasons, so courtenay's
   "'dumbass' test":http://tinyurl.com/684g9t doesn't complain)
-
-h3. Specs
-
-* 100% coverage (needed some access_control checks, and the http_auth stuff)
-
-h3. Stories
-
-* added them
+* Added site key to generator, users.yml.
+* Made site key generation idempotent in the most crude and hackish way
+* 100% coverage apart from the stateful code. (needed some access_control
+  checks, and the http_auth stuff)
+* Stories!
 
