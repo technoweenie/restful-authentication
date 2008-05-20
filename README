@@ -52,12 +52,14 @@ authentication code. The flexible code for resource testing in stories was
 extended from "Ben Mabey's.":http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
 
 h3. Modularize to match security design patterns:
+
 * Authentication (currently: password, browser cookie token, HTTP basic)
 * Trust metric (email validation) 
 * Authorization (stateful roles)
 * Leave a flexible framework that will play nicely with other access control / policy definition / trust metric plugins
 
 h3. Other
+
 * Added a few helper methods for linking to user pages
 * Uniform handling of logout, remember_token
 * Stricter email, login field validation

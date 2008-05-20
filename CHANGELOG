@@ -52,16 +52,9 @@ h3. authenticated_system
 * added uniform logout! methods
 * format.any (as found in access_denied) doesn't work until
   http://dev.rubyonrails.org/changeset/8987 lands.
-* cookies are now refreshed each time we cross the logged out/in barrier
-  http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
-  http://palisade.plynt.com/issues/2004Jul/safe-auth-practices/
-  
-* !!!! Possibly stupid !!!
-  Made current_user and logged_in? be public methods.  I did this for the worst
-  possible reason -- so that I could write story steps that call it directly.
-  However, they're already globally public methods in principle through their
-  exposure as helper methods.  But if there's a less kludgy fix please educate
-  me.
+* cookies are now refreshed each time we cross the logged out/in barrier, as 
+  "best":http://palisade.plynt.com/issues/2004Jul/safe-auth-practices/
+  "practice":http://www.owasp.org/index.php/Session_Management#Regeneration_of_Session_Tokens
 
 h3. Other
 
