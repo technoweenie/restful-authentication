@@ -5,6 +5,9 @@ require 'spec/rails/story_adapter'
 require 'spec/story'
 require File.expand_path(File.dirname(__FILE__) + "/rest_auth_stories_helper.rb")
 
+# Make visible for testing
+ApplicationController.send(:public, :logged_in?, :current_user, :authorized?)
+
 this_dir = File.dirname(__FILE__)
 Dir[File.join(this_dir, "steps/*.rb")].each do |file|
   puts file.to_s
