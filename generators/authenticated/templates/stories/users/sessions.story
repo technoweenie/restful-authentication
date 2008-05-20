@@ -23,7 +23,7 @@ Story: Logging in
   Scenario: Anonymous <%= file_name %> can log in
     Given an anonymous <%= file_name %>
      And  an activated <%= file_name %> named 'reggie'
-    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'reggie', remember me: ''
+    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'monkey', remember me: ''
     Then  she should be redirected to the home page
     When  she follows that redirect!
     Then  she should see a notice message 'Logged in successfully'
@@ -33,7 +33,7 @@ Story: Logging in
   Scenario: Logged-in <%= file_name %> who logs in should be the new one
     Given an activated <%= file_name %> named 'reggie'
      And  an activated <%= file_name %> logged in as 'oona'
-    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'reggie', remember me: ''
+    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'monkey', remember me: ''
     Then  she should be redirected to the home page
     When  she follows that redirect!
     Then  she should see a notice message 'Logged in successfully'
@@ -46,13 +46,14 @@ Story: Logging in
   Scenario: Anonymous <%= file_name %> can log in and be remembered
     Given an anonymous <%= file_name %>
      And  an activated <%= file_name %> named 'reggie'
-    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'reggie', remember me: '1'
+    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'monkey', remember me: '1'
     Then  she should be redirected to the home page
     When  she follows that redirect!
     Then  she should see a notice message 'Logged in successfully'
      And  reggie should be logged in
      And  she should have an auth_token cookie
-     And  her session store should have <%= file_name %>_id: 3
+	      # assumes fixtures were run sometime
+     And  her session store should have <%= file_name %>_id: 4
    
   #
   # Log in unsuccessfully
@@ -60,7 +61,7 @@ Story: Logging in
   
   Scenario: Logged-in <%= file_name %> who fails logs in should be logged out
     Given an activated <%= file_name %> named 'oona'
-    When  she creates a singular <%= controller_file_name %> with login: 'oona', password: 'oona', remember me: '1'
+    When  she creates a singular <%= controller_file_name %> with login: 'oona', password: '1234oona', remember me: '1'
     Then  she should be redirected to the home page
     When  she follows that redirect!
     Then  she should see a notice message 'Logged in successfully'
@@ -87,25 +88,26 @@ Story: Logging in
      And  she should not be logged in
      And  she should not have an auth_token cookie
      And  her session store should not have <%= file_name %>_id
-    When  she creates a singular <%= controller_file_name %> with login: '', password: 'reggie'
+    When  she creates a singular <%= controller_file_name %> with login: '', password: 'monkey'
     Then  she should be at the new <%= controller_file_name %> page
     Then  she should see an error message 'Couldn't log you in as '''
      And  she should not be logged in
      And  she should not have an auth_token cookie
      And  her session store should not have <%= file_name %>_id
-    When  she creates a singular <%= controller_file_name %> with login: 'leonard_shelby', password: 'reggie'
+    When  she creates a singular <%= controller_file_name %> with login: 'leonard_shelby', password: 'monkey'
     Then  she should be at the new <%= controller_file_name %> page
     Then  she should see an error message 'Couldn't log you in as 'leonard_shelby''
      And  she should not be logged in
      And  she should not have an auth_token cookie
      And  her session store should not have <%= file_name %>_id
-    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'reggie', remember me: '1'
+    When  she creates a singular <%= controller_file_name %> with login: 'reggie', password: 'monkey', remember me: '1'
     Then  she should be redirected to the home page
     When  she follows that redirect!
     Then  she should see a notice message 'Logged in successfully'
      And  reggie should be logged in
      And  she should have an auth_token cookie
-     And  her session store should have <%= file_name %>_id: 3
+	      # assumes fixtures were run sometime
+     And  her session store should have <%= file_name %>_id: 4
 
 
   #

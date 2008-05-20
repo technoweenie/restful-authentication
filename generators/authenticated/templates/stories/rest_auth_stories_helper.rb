@@ -31,6 +31,7 @@ module ToFooFromStory
     when value =~ /^"(.*)"$/    then value = $1
     when value == 'nil!'        then value = nil
     when value == 'non-nil!'    then value = be_nil
+    when value =~ /^#\{(.*)\}$/ then value = eval($1)
     end
     value
   end

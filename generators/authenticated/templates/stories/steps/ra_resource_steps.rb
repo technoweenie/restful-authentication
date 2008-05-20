@@ -11,7 +11,7 @@ steps_for(:ra_resource) do
   # produces a <%= class_name %> instance stored in @<%= file_name %> with 'mojojojo' as its login
   # attribute.
   #
-  Given "a $resource with $attributes" do |resource, attributes|
+  Given "a $resource instance with $attributes" do |resource, attributes|
     klass, instance, attributes = parse_resource_args resource, attributes
     instance = klass.new(attributes)
     instance.save!

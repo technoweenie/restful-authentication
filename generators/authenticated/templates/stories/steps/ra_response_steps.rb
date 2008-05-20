@@ -60,6 +60,15 @@ steps_for(:ra_response) do
       cookies[token].include?(val).should be_true
     end
   end
+  
+  Then "$actor $token cookie should exist but not include $attrlist" do |_, token, attrlist|
+    attrlist = attrlist.to_array_from_story
+    cookies.include?(token).should be_true
+    puts [cookies, attrlist, token].to_yaml
+    attrlist.each do |val|
+      cookies[token].include?(val).should_not be_true
+    end
+  end
 
   Then "$actor should have $an $token cookie" do |_, _, token|
     cookies[token].should_not be_blank
@@ -68,6 +77,20 @@ steps_for(:ra_response) do
     cookies[token].should be_blank
   end
 
+  Given "$actor has $an cookie jar with $attributes" do |_, _, attributes|
+    attributes = attributes.to_hash_from_story
+    attributes.each do |attr, val|
+      cookies[attr] = val
+    end
+  end
+  Given "$actor session store has no $attrlist" do |_, attrlist|
+    attrlist = attrlist.to_array_from_story
+    attrlist.each do |attr|
+      # Note that the comparison passes through 'to_s'
+      session[attr.to_sym] = nil
+    end
+  end
+  
   Then "$actor session store should have $attributes" do |_, attributes|
     attributes = attributes.to_hash_from_story
     attributes.each do |attr, val|
