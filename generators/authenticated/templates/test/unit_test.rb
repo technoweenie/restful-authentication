@@ -61,11 +61,11 @@ class <%= class_name %>Test < Test::Unit::TestCase
 
   def test_should_not_rehash_password
     <%= table_name %>(:quentin).update_attributes(:login => 'quentin2')
-    assert_equal <%= table_name %>(:quentin), <%= class_name %>.authenticate('quentin2', 'test')
+    assert_equal <%= table_name %>(:quentin), <%= class_name %>.authenticate('quentin2', 'monkey')
   end
 
   def test_should_authenticate_<%= file_name %>
-    assert_equal <%= table_name %>(:quentin), <%= class_name %>.authenticate('quentin', 'test')
+    assert_equal <%= table_name %>(:quentin), <%= class_name %>.authenticate('quentin', 'monkey')
   end
 
   def test_should_set_remember_token
@@ -157,7 +157,7 @@ class <%= class_name %>Test < Test::Unit::TestCase
 <% end %>
 protected
   def create_<%= file_name %>(options = {})
-    record = <%= class_name %>.new({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
+    record = <%= class_name %>.new({ :login => 'quire', :email => 'quire@example.com', :password => 'quire69', :password_confirmation => 'quire69' }.merge(options))
     record.<% if options[:stateful] %>register! if record.valid?<% else %>save<% end %>
     record
   end

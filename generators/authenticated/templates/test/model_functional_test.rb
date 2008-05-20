@@ -72,9 +72,9 @@ class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
   def test_should_activate_user
     assert_nil <%= class_name %>.authenticate('aaron', 'test')
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code
-    assert_redirected_to '/'
+    assert_redirected_to '/session/new'
     assert_not_nil flash[:notice]
-    assert_equal <%= table_name %>(:aaron), <%= class_name %>.authenticate('aaron', 'test')
+    assert_equal <%= table_name %>(:aaron), <%= class_name %>.authenticate('aaron', 'monkey')
   end
   
   def test_should_not_activate_user_without_key
@@ -94,6 +94,6 @@ class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
   protected
     def create_<%= file_name %>(options = {})
       post :create, :<%= file_name %> => { :login => 'quire', :email => 'quire@example.com',
-        :password => 'quire', :password_confirmation => 'quire' }.merge(options)
+        :password => 'quire69', :password_confirmation => 'quire69' }.merge(options)
     end
 end
