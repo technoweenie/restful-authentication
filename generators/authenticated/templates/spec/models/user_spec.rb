@@ -132,7 +132,7 @@ describe <%= class_name %> do
       end
     end
   end
-  describe "disallows illegitimate names #{REST_AUTH_SITE_KEY}" do
+  describe "disallows illegitimate names" do
     ["tab\t", "newline\n",
      '1234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_',
      ].each do |name_str|
@@ -166,6 +166,26 @@ describe <%= class_name %> do
   it "doesn't authenticates <%= file_name %> with bad password" do
     <%= class_name %>.authenticate('quentin', 'monkey').should == <%= table_name %>(:quentin)
   end
+
+ if REST_AUTH_SITE_KEY.blank? 
+   # old-school passwords
+   it "authenticates a user against a hard-coded old-style password" do
+     <%= class_name %>.authenticate('old_password_holder', 'test').should == <%= table_name %>(:old_password_holder)
+   end
+ else
+   it "doesn't authenticate a user against a hard-coded old-style password" do
+     <%= class_name %>.authenticate('old_password_holder', 'test').should be_nil
+   end
+
+   # New installs should bump this up and set REST_AUTH_DIGEST_STRETCHES to give a 10ms encrypt time or so
+   desired_encryption_expensiveness_ms = 0.1
+   it "takes longer than #{desired_encryption_expensiveness_ms}ms to encrypt a password" do
+     test_reps = 100
+     start_time = Time.now; test_reps.times{ <%= class_name %>.authenticate('quentin', 'monkey'+rand.to_s) }; end_time   = Time.now
+     auth_time_ms = 1000 * (end_time - start_time)/test_reps
+     auth_time_ms.should > desired_encryption_expensiveness_ms
+   end
+ end
 
   #
   # Authentication

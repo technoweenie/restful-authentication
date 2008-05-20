@@ -14,59 +14,55 @@ describe <%= controller_class_name %>Controller do
   def do_create
     post :create, @login_params
   end
-  describe "when I successfully login," do
-    [ true, false ].each do |already_remembered|
+  describe "on successful login," do
+    [ [:nil,       nil,            nil],
+      [:expired,   'valid_token',  15.minutes.ago],
+      [:different, 'i_haxxor_joo', 15.minutes.from_now], 
+      [:valid,     'valid_token',  15.minutes.from_now]
+        ].each do |has_request_token, token_value, token_expiry|
       [ true, false ].each do |want_remember_me|
-        describe "#{already_remembered ? 'am' : 'am not'} already remembered," do
+        describe "my request cookie token is #{has_request_token.to_s}," do
           describe "and ask #{want_remember_me ? 'to' : 'not to'} be remembered" do 
             before do
+              @ccookies = mock('cookies')
+              controller.stub!(:cookies).and_return(@ccookies)
+              @ccookies.stub!(:[]).with(:auth_token).and_return(token_value)
+              @ccookies.stub!(:delete).with(:auth_token)
+              @ccookies.stub!(:[]=)
               @<%= file_name %>.stub!(:remember_me) 
               @<%= file_name %>.stub!(:refresh_token) 
-              @<%= file_name %>.stub!(:remember_token).and_return(already_remembered ? 'auth_token' : nil)
-              @<%= file_name %>.stub!(:remember_token_expires_at).and_return(15.minutes.from_now)
-              @<%= file_name %>.stub!(:remember_token?).and_return already_remembered
+              @<%= file_name %>.stub!(:forget_me)
+              @<%= file_name %>.stub!(:remember_token).and_return(token_value) 
+              @<%= file_name %>.stub!(:remember_token_expires_at).and_return(token_expiry)
+              @<%= file_name %>.stub!(:remember_token?).and_return(has_request_token == :valid)
               if want_remember_me
                 @login_params[:remember_me] = '1'
               else 
                 @login_params[:remember_me] = '0'
               end
-            end          
+            end
             it "kills existing login"        do controller.should_receive(:logout_keeping_session!); do_create; end    
             it "authorizes me"               do do_create; controller.authorized?().should be_true;   end    
             it "logs me in"                  do do_create; controller.logged_in?().should  be_true  end    
             it "greets me nicely"            do do_create; response.flash[:notice].should =~ /success/i   end
-            it 'redirects to the home page'  do 
-              do_create; response.should redirect_to('/')   
-            end
-            # if you uncomment the reset_session path
-            it "does not reset my session" do 
-              controller.should_not_receive(:reset_session).and_return nil
-              do_create
-            end
-            if want_remember_me
-              if already_remembered
-                it 'does not remember me'    do @<%= file_name %>.should_not_receive(:remember_me); do_create end
-                it 'refreshes token'         do @<%= file_name %>.should_receive(:refresh_token);   do_create end 
-              else
-                it 'remembers me'            do @<%= file_name %>.should_receive(:remember_me);     do_create end 
+            it "sets/resets/expires cookie"  do controller.should_receive(:handle_remember_cookie!).with(want_remember_me); do_create end
+            it "sends a cookie"              do controller.should_receive(:send_remember_cookie!);  do_create end
+            it 'redirects to the home page'  do do_create; response.should redirect_to('/')   end
+            it "does not reset my session"   do controller.should_not_receive(:reset_session).and_return nil; do_create end # change if you uncomment the reset_session path
+            if (has_request_token == :valid)
+              it 'does not make new token'   do @<%= file_name %>.should_not_receive(:remember_me);   do_create end
+              it 'does refresh token'        do @<%= file_name %>.should_receive(:refresh_token);     do_create end 
+              it "sets an auth cookie"       do do_create;  end
+            else
+              if want_remember_me
+                it 'makes a new token'       do @<%= file_name %>.should_receive(:remember_me);       do_create end 
+                it "does not refresh token"  do @<%= file_name %>.should_not_receive(:refresh_token); do_create end
+                it "sets an auth cookie"       do do_create;  end
+              else 
+                it 'does not make new token' do @<%= file_name %>.should_not_receive(:remember_me);   do_create end
+                it 'does not refresh token'  do @<%= file_name %>.should_not_receive(:refresh_token); do_create end 
+                it 'kills user token'        do @<%= file_name %>.should_receive(:forget_me);         do_create end 
               end
-              it "makes or refreshes cookie" do controller.should_receive(:make_or_refresh_remember_cookie!);  do_create end
-              it "sends a cookie"            do controller.should_receive(:send_remember_cookie!);  do_create end
-              it "sets an auth token"        do do_create;  response.cookies["auth_token"].should_not be_nil end
-            else 
-              # don't remember me
-              if already_remembered
-                it "refreshes cookie"        do controller.should_receive(:refresh_remember_cookie_if_set!); do_create end
-                it "sends a cookie"          do controller.should_receive(:send_remember_cookie!);  do_create end
-              else
-                it "checks the cookie"       do controller.should_receive(:refresh_remember_cookie_if_set!); do_create end
-                it "doesn't send a cookie"   do controller.should_not_receive(:send_remember_cookie!);  do_create end
-              end
-              it "does not remember me"      do @<%= file_name %>.should_not_receive(:remember_me); do_create end
-              it "does#{already_remembered ? '' : ' not'} leave an auth token" do 
-                do_create  
-                response.cookies["auth_token"].should_not(already_remembered ? be_nil : be_true) 
-              end 
             end
           end # inner describe
         end

@@ -16,11 +16,8 @@ class <%= controller_class_name %>Controller < ApplicationController
       # button. Uncomment if you understand the tradeoffs.
       # reset_session
       self.current_<%= file_name %> = <%= file_name %>
-      if params[:remember_me] == "1"
-        make_or_refresh_remember_cookie!
-      else
-        refresh_remember_cookie_if_set!
-      end
+      new_cookie_flag = (params[:remember_me] == "1")
+      handle_remember_cookie! new_cookie_flag
       redirect_back_or_default('/')
       flash[:notice] = "Logged in successfully"
     else

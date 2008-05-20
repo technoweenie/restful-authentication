@@ -26,6 +26,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
       # Protects against session fixation attacks, causes request forgery
       # protection if visitor resubmits an earlier form using back
       # button. Uncomment if you understand the tradeoffs.
+      # reset session
       self.current_<%= file_name %> = @<%= file_name %> # !! now logged in
       <% end -%>
       redirect_back_or_default('/')

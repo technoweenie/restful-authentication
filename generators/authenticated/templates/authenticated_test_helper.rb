@@ -19,5 +19,4 @@ module AuthenticatedTestHelper
     <%= file_name %>
   end  
 <% end -%>
-
 end
