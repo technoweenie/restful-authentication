@@ -124,6 +124,7 @@ module AuthenticatedSystem
       if <%= file_name %> && <%= file_name %>.remember_token?
         self.current_<%= file_name %> = <%= file_name %>
         handle_remember_cookie! false # freshen cookie token (keeping date)
+        self.current_<%= file_name %>
       end
     end
 

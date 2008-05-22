@@ -3,7 +3,7 @@ include ApplicationHelper
 include <%= model_controller_name %>Helper
 include AuthenticatedTestHelper
 
-describe <%= model_controller_name %>Helper do
+describe <%= model_controller_class_name %>Helper do
   before do
     @<%= file_name %> = mock_<%= file_name %>
   end
