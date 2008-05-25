@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 include ApplicationHelper
-include <%= model_controller_name %>Helper
+include <%= model_controller_class_name %>Helper
 include AuthenticatedTestHelper
 
 describe <%= model_controller_class_name %>Helper do
