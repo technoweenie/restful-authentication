@@ -1,28 +1,96 @@
-This is mrflip's fork of "technoweenie's restful-authentication":/technoweenie/restful-authentication/
-plugin. The goal is to
+h1. Restful Authentication Generator
 
-* Modularize to match security design patterns:
-** Authentication (currently: password, browser cookie token, HTTP basic)
-** Trust metric (email validation) 
-** Authorization (stateful roles)
-* Add full RSpec and Story test suite
+This widely-used plugin provides a foundation for securely managing user
+authentication:
+* Login / logout
+* Secure password handling
+* Account activation by validating email
+* Account approval / disabling by admin
+* Rudimentary hooks for authorization and access control.
+
+Several features were updated in May, 2008.  The newest version of this plugin
+may be found in
+  http://github.com/technoweenie/restful-authentication/tree/master
+While a "classic" (backward-compatible) version may be found in
+  http://github.com/technoweenie/restful-authentication/tree/classic
+
+  !! important: if you upgrade your site, existing user account !!
+  !! passwords will stop working unless you use --old-passwords !!
+
+This page has notes on
+* "Installation":#INSTALL
+* "Compatibility Warning":#COMPATIBILITY
+* "New Features":#AWESOME
+* "After installing":#POST-INSTALL
+
+See the "wiki":http://github.com/technoweenie/restful-authentication/wikis/home
+(or the notes/ directory) if you want to learn more about:
+
+* "Security Design Patterns":Security-Patterns with "snazzy diagram":http://github.com/technoweenie/restful-authentication/tree/master/notes/SecurityFramework.png
+* [[Authentication]] -- Lets a visitor identify herself (and lay  claim to her corresponding Roles and measure of Trust)
+* "Trust Metrics":Trustification -- Confidence we can rely on the outcomes of this visitor's actions.
+* [[Authorization]] and Policy -- Based on trust and identity, what actions may this visitor perform?
+* [[Access Control]] -- How the Authorization policy is actually enforced in your code (A: hopefully without turning it into  a spaghetti of if thens)
+* [[Rails Plugins]] for Authentication, Trust,  Authorization and Access Control
+* [[Tradeoffs]] -- for the paranoid or the curious, a rundown of tradeoffs made in the code
+* [[CHANGELOG]] -- Summary of changes to internals
+* [[TODO]] -- Ideas for how you can help
+
+These best version of the release notes are in the notes/ directory in the
+"source code":http://github.com/technoweenie/restful-authentication/tree/master
+-- look there for the latest version.  The wiki versions are taken (manually)
+from there.
+  
+***************************************************************************
+<a id="AWESOME"/> </a>
+h2. Exciting new features
+
+h3. Stories
+
+There are now RSpec stories that allow expressive, enjoyable tests for the
+authentication code. The flexible code for resource testing in stories was
+extended from "Ben Mabey's.":http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
+
+h3. Modularize to match security design patterns:
+
+* Authentication (currently: password, browser cookie token, HTTP basic)
+* Trust metric (email validation) 
+* Authorization (stateful roles)
 * Leave a flexible framework that will play nicely with other access control / policy definition / trust metric plugins
 
-See the "wiki":http://github.com/mrflip/restful-authentication/wikis/home for notes on
-* "Security Design Patterns":Security-Patterns
-* [[Authentication]] -- Lets a visitor identify herself (and lay claim to her corresponding Roles and measure of Trust)
-* "Trust Metrics":Trustification -- Confidence we can rely on the outcomes of this visitor's actions.
-* "Authorization and Policy":Authorization -- Based on trust and identity, what actions may this visitor perform?
-* "Access Control":Access-Control -- How the Authorization policy is actually enforced in your code (hopefully without turning it into a spaghetti of if thens)
-* "Rails Security Plugins":RailsPlugins -- for Authentication, Trust, Authorization and Access Control
+h3. Other
 
-These best versions are in the notes/ directory in the "source code":http://github.com/mrflip/restful-authentication/tree/master -- look there for the latest version.
-The wiki versions are taken (manually) from there.
+* Added a few helper methods for linking to user pages
+* Uniform handling of logout, remember_token
+* Stricter email, login field validation
+* Minor security fixes -- see CHANGELOG
 
-===========================================================================
+***************************************************************************
+<a id="COMPATIBILITY"/> </a>
+h2. Non-backwards compatible Changes
 
-Restful Authentication Generator
-====
+Here are a few changes in the May 2008 release that increase "Defense in Depth"
+but may require changes to existing accounts
+
+* If you have an existing site, none of these changes are compelling enough to
+  warrant migrating your userbase.
+* If you are generating for a new site, all of these changes are low-impact.
+  You should apply them.
+
+h3. Passwords
+
+The new password encryption (using a site key salt and stretching) will break
+existing user accounts' passwords.  We recommend you use the --old-passwords
+option or write a migration tool and submit it as a patch.  See the
+[[Tradeoffs]] note for more information.
+
+h3. Validations
+
+By default, 
+
+***************************************************************************
+<a id="INSTALL"/> </a>
+h2. Installation
 
 This is a basic restful authentication generator for rails, taken from
 acts as authenticated.  Currently it requires Rails 1.2.6 or above.
@@ -34,76 +102,73 @@ To use:
     --stateful \
     --rspec \
     --skip-migration \
-    --skip-routes
+    --skip-routes \
+    --old-passwords
 
-The first parameter specifies the model that gets created in signup
-(typically a user or account model).  A model with migration is
-created, as well as a basic controller with the create method.
+* The first parameter specifies the model that gets created in signup (typically
+  a user or account model).  A model with migration is created, as well as a
+  basic controller with the create method. You probably want to say "User" here.
 
-The second parameter specifies the sessions controller name.  This is
-the controller that handles the actual login/logout function on the
-site.
+* The second parameter specifies the session controller name.  This is the
+  controller that handles the actual login/logout function on the site.
+  (probably: "Session").
 
-The third parameter (--include-activation) generates the code for a
-ActionMailer and its respective Activation Code through email.
+* --include-activation: Generates the code for a ActionMailer and its respective
+  Activation Code through email.
 
-The fourth (--stateful) builds in support for acts_as_state_machine and
-generates activation code.  (--stateful implies --include-activation).
-This was taken from:
+* --stateful: Builds in support for acts_as_state_machine and generates
+  activation code.  (@--stateful@ implies @--include-activation@). Based on the
+  idea at [[http://www.vaporbase.com/postings/stateful_authentication]]. Passing
+  @--skip-migration@ will skip the user migration, and @--skip-routes@ will skip
+  resource generation -- both useful if you've already run this generator.
 
-http://www.vaporbase.com/postings/stateful_authentication
+* --rspec: Generate RSpec tests and Stories in place of standard rails tests.
+  This requires the
+    "RSpec and Rspec-on-rails plugins":http://rspec.info/
+  (make sure you "./script/generate rspec" after installing RSpec.)  The rspec
+  and story suite are much more thorough than the rails tests, and changes are
+  unlikely to be backported.
+  
+* --old-passwords: Use the older password scheme (see [[#COMPATIBILITY]], above)
 
-Passing --skip-migration will skip the user migration, and --skip-routes will
-skip resource generation -- both useful if you've already run this generator.
+* --skip-migration: Don't generate a migration file for this model
 
-Pass --rspec to generate a (more thorough) set of RSpec tests.  This
-requires the RSpec and Rspec-on-rails plugins: http://rspec.info/
+* --skip-routes: Don't generate a resource line in @config/routes.rb@
+
 
 ***************************************************************************
-Post-install
+<a id="POST-INSTALL"/> </a>
+h2. After installing
 
-The below assumes a Model named 'User' and a Controller named
-'Session'; please alter to suit.
+The below assumes a Model named 'User' and a Controller named 'Session'; please
+alter to suit. There are additional security minutae in @notes/README-Tradeoffs@
+-- only the paranoid or the curious need bother, though.
 
-Try these for some familiar login URLs if you like:
-  map.signup  '/signup', :controller => 'users',   :action => 'new'
-  map.signin  '/login',  :controller => 'session', :action => 'new'
-  map.signout '/logout', :controller => 'session', :action => 'destroy'
+* Add these familiar login URLs to your @config/routes.rb@ if you like:
 
-With --include-activation:
-
-* Add a route to config/routes.rb:
-    map.activate '/activate/:activation_code', :controller => 'users', :action => 'activate', :activation_code => nil)
-
-* Add an observer to config/environment.rb:
+     map.signup  '/signup', :controller => 'users',   :action => 'new' @
+     map.signin  '/login',  :controller => 'session', :action => 'new' @
+     map.signout '/logout', :controller => 'session', :action => 'destroy' @
+    
+* With @--include-activation@, also add to your @config/routes.rb@:
+  
+    map.activate '/activate/:activation_code', :controller => 'users', :action => 'activate', :activation_code => nil) 
+    
+  and add an observer to @config/environment.rb@:
+  
     config.active_record.observers = :users_observer
 
-* Add an observer to config/environment.rb
-  config.active_record.observers = :user_observer # or whatever you 
-                                                  # named your model
-
-With --stateful:
-
-* If you're using acts_as_state_machine, define your users resource like this:
+* With @--stateful@, add an observer to config/environment.rb:
+  
+    config.active_record.observers = :user_observer
+  
+  and modify the users resource line to read
+  
     map.resources :users, :member => { :suspend   => :put,
                                        :unsuspend => :put,
-                                       :purge     => :delete }
+                                       :purge     => :delete } 
 
-Security Alert
-====
-
-I introduced a change to the model controller that's been tripping 
-folks up on Rails 2.0.  The change was added as a suggestion to help
-combat session fixation attacks.  However, this resets the Form 
-Authentication token used by Request Forgery Protection.  I've left
-it out now, since Rails 1.2.6 and Rails 2.0 will both stop session
-fixation attacks anyway.
-
-***************************************************************************
-Stories
-
-There are now RSpec stories that allow expressive enjoyable tests for the
-authentication code.
-
-The flexible code for resource testing came out of code from Ben Mabey
-http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
+* If you use a public repository for your code (such as github, rubyforge,
+  gitorious, etc.) make sure to NOT post your site_keys.rb (add a line like
+  '/config/initializers/site_keys.rb' to your .gitignore or do the svn ignore
+  dance), but make sure you DO keep it backed up somewhere safe.

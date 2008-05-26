@@ -43,18 +43,20 @@ steps_for(:<%= file_name %>) do
   end
 
   When "$actor registers an account as the preloaded '$login'" do |_, login|
-    create_<%= file_name %> named_<%= file_name %>(login)
+    <%= file_name %> = named_<%= file_name %>(login)
+    <%= file_name %>['password_confirmation'] = <%= file_name %>['password']
+    create_<%= file_name %> <%= file_name %>
   end
 
   When "$actor registers an account with $attributes" do |_, attributes|
     create_<%= file_name %> attributes.to_hash_from_story
   end
-  
+<% if options[:include_activation] %>  
   When "$actor activates with activation code $attributes" do |_, activation_code|
     activation_code = '' if activation_code == 'that is blank'
     activate 
-  end
-  
+  end<% end %>  
+
   When "$actor logs in with $attributes" do |_, attributes|
     log_in_<%= file_name %> attributes.to_hash_from_story
   end
@@ -80,11 +82,9 @@ end
 
 def named_<%= file_name %> login
   <%= file_name %>_params = {
-    'admin'   => {:id => 1, :login => 'addie',  :password => 'addie',  :email => 'admin@example.com',       },
-    'oona'    => {          :login => 'oona',   :password => 'oona',   :email => 'unactivated@example.com'},
-    'reggie'  => {          :login => 'reggie', :password => 'reggie', :email => 'registered@example.com' },
-    'quentin' => {:id => 1, :login => 'quentin',:password => 'test',   :email => 'quentin@example.com', :salt => 'c01a01185db60cee742e65fcf9b7e5c3d1082280', :crypted_password => 'bb8b0a46b9e2dd548fe6aa9fc5eecbecfcb479aa', :created_at => 5.days.ago.to_s,  :activation_code => '20ad8a28ca9ab987929ef67b1b202767b22da395', :activated_at => 5.days.ago.to_s, },
-    'aaron'   => {:id => 2, :login => 'aaron',  :password => 'test',   :email => 'aaron@example.com',   :salt => 'c0e666527f8ccd6a419b536269be5b3de22ab7f8', :crypted_password => 'dc8a020aa058d880bffd74d8468b8307f79806d6', :created_at => 1.days.ago.to_s,  :activation_code => 'c25c6846ac4233fafece3ae9746c900c88e48d2b',  },
+    'admin'   => {'id' => 1, 'login' => 'addie', 'password' => '1234addie', 'email' => 'admin@example.com',       },
+    'oona'    => {          'login' => 'oona',   'password' => '1234oona',  'email' => 'unactivated@example.com'},
+    'reggie'  => {          'login' => 'reggie', 'password' => 'monkey',    'email' => 'registered@example.com' },
     }
   <%= file_name %>_params[login.downcase]
 end
@@ -109,20 +109,22 @@ def log_out!
 end
 
 def create_<%= file_name %>(<%= file_name %>_params={})
-  <%= file_name %>_params[:password_confirmation] ||= <%= file_name %>_params[:password] ||= <%= file_name %>_params['password']
   @<%= file_name %>_params       ||= <%= file_name %>_params
   post "/<%= model_controller_file_path %>", :<%= file_name %> => <%= file_name %>_params
-  @<%= file_name %> = <%= class_name %>.find_by_login(<%= file_name %>_params[:login])
+  @<%= file_name %> = <%= class_name %>.find_by_login(<%= file_name %>_params['login'])
 end
 
-def create_<%= file_name %>!(<%= file_name %>_type, *args)
-  create_<%= file_name %> *args
+def create_<%= file_name %>!(<%= file_name %>_type, <%= file_name %>_params)
+  <%= file_name %>_params['password_confirmation'] ||= <%= file_name %>_params['password'] ||= <%= file_name %>_params['password']
+  create_<%= file_name %> <%= file_name %>_params
   response.should redirect_to('/')
   follow_redirect!
+<% if options[:include_activation] %> 
   # fix the <%= file_name %>'s activation status
-  activate_<%= file_name %>! if <%= file_name %>_type == 'activated'
+  activate_<%= file_name %>! if <%= file_name %>_type == 'activated'<% end %>
 end
 
+<% if options[:include_activation] %> 
 def activate_<%= file_name %> activation_code=nil
   activation_code = @<%= file_name %>.activation_code if activation_code.nil?
   get "/activate/#{activation_code}"
@@ -133,13 +135,13 @@ def activate_<%= file_name %>! *args
   response.should redirect_to('/<%= controller_file_path %>/new')
   follow_redirect!
   response.should have_flash("notice", /Signup complete!/)
-end
+end<% end %>
 
 def log_in_<%= file_name %> <%= file_name %>_params=nil
   @<%= file_name %>_params ||= <%= file_name %>_params
   <%= file_name %>_params  ||= @<%= file_name %>_params
   post "/<%= controller_file_path %>", <%= file_name %>_params
-  @<%= file_name %> = <%= class_name %>.find_by_login(<%= file_name %>_params[:login])
+  @<%= file_name %> = <%= class_name %>.find_by_login(<%= file_name %>_params['login'])
   controller.current_<%= file_name %>
 end
 

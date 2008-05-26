@@ -1,4 +1,5 @@
 module AuthenticatedSystem
+  protected
     # Returns true or false if the <%= file_name %> is logged in.
     # Preloads @current_<%= file_name %> with the <%= file_name %> model if they're logged in.
     def logged_in?
@@ -11,7 +12,6 @@ module AuthenticatedSystem
       @current_<%= file_name %> ||= (login_from_session || login_from_basic_auth || login_from_cookie) unless @current_<%= file_name %> == false
     end
 
-  protected
     # Store the given <%= file_name %> id in the session.
     def current_<%= file_name %>=(new_<%= file_name %>)
       session[:<%= file_name %>_id] = new_<%= file_name %> ? new_<%= file_name %>.id : nil
@@ -123,7 +123,8 @@ module AuthenticatedSystem
       <%= file_name %> = cookies[:auth_token] && <%= class_name %>.find_by_remember_token(cookies[:auth_token])
       if <%= file_name %> && <%= file_name %>.remember_token?
         self.current_<%= file_name %> = <%= file_name %>
-        refresh_remember_cookie_if_set! # freshen cookie token (keeping date)
+        handle_remember_cookie! false # freshen cookie token (keeping date)
+        self.current_<%= file_name %>
       end
     end
 
@@ -156,20 +157,23 @@ module AuthenticatedSystem
     # Cookies shouldn't be allowed to persist past their freshness date,
     # and they should be changed at each login
 
+    def valid_remember_cookie?
+      return nil unless @current_<%= file_name %>
+      (@current_<%= file_name %>.remember_token?) && 
+        (cookies[:auth_token] == @current_<%= file_name %>.remember_token)
+    end
+    
     # Refresh the cookie auth token if it exists, create it otherwise
-    def make_or_refresh_remember_cookie!
+    def handle_remember_cookie! new_cookie_flag
       return unless @current_<%= file_name %>
-      if @current_<%= file_name %>.remember_token? then @current_<%= file_name %>.refresh_token else @current_<%= file_name %>.remember_me end
+      case
+      when valid_remember_cookie? then @current_<%= file_name %>.refresh_token # keeping same expiry date
+      when new_cookie_flag        then @current_<%= file_name %>.remember_me 
+      else                             @current_<%= file_name %>.forget_me
+      end
       send_remember_cookie!
     end
-
-    # Refresh the cookie auth token if it exists, ignore it otherwise
-    def refresh_remember_cookie_if_set!
-      return unless @current_<%= file_name %> && @current_<%= file_name %>.remember_token?
-      @current_<%= file_name %>.refresh_token
-      send_remember_cookie!
-    end
-
+  
     def kill_remember_cookie!
       cookies.delete :auth_token
     end

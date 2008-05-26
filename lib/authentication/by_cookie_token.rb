@@ -1,7 +1,6 @@
 # -*- coding: mule-utf-8 -*-
 module Authentication
   module ByCookieToken
-
     # Stuff directives into including module 
     def self.included( recipient )
       recipient.extend( ModelClassMethods )
@@ -13,7 +12,7 @@ module Authentication
     #
     # Class Methods
     #
-    module ModelClassMethods
+    module ModelClassMethods      
     end # class methods
 
     #
@@ -22,7 +21,7 @@ module Authentication
     module ModelInstanceMethods
       def remember_token?
         (!remember_token.blank?) && 
-          remember_token_expires_at && Time.now.utc < remember_token_expires_at 
+          remember_token_expires_at && (Time.now.utc < remember_token_expires_at.utc)
       end
 
       # These create and unset the fields required for remembering users between browser closes
@@ -60,4 +59,27 @@ module Authentication
       end
     end # instance methods
   end
+  
+
+  #
+  #
+  module ByCookieTokenController
+    # Stuff directives into including module 
+    def self.included( recipient )
+      recipient.extend( ControllerClassMethods )
+      recipient.class_eval do
+        include ControllerInstanceMethods
+      end
+    end
+
+    #
+    # Class Methods
+    #
+    module ControllerClassMethods
+    end # class methods
+    
+    module ControllerInstanceMethods
+    end # instance methods
+  end
 end
+

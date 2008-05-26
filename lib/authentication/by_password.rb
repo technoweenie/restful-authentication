@@ -21,17 +21,17 @@ module Authentication
     # Class Methods
     #
     module ModelClassMethods
-      # Backwards-compatible; replace call to "password_digest" with "old_password_digest"
-      def old_password_digest(password, salt)
-        Digest::SHA1.hexdigest("--#{salt}--#{password}--")
-      end      
       # This provides a modest increased defense against a dictionary attack if
       # your db were ever compromised, but will invalidate existing passwords.
-      # See the README.
+      # See the README and the file config/initializers/site_keys.rb
+      #
+      # It may not be obvious, but if you set REST_AUTH_SITE_KEY to nil and
+      # REST_AUTH_DIGEST_STRETCHES to 1 you'll have backwards compatibility with
+      # older versions of restful-authentication.
       def password_digest(password, salt)
         digest = REST_AUTH_SITE_KEY
         REST_AUTH_DIGEST_STRETCHES.times do
-          digest = secure_digest(salt, digest, password, REST_AUTH_SITE_KEY)
+          digest = secure_digest(digest, salt, password, REST_AUTH_SITE_KEY)
         end
         digest
       end      

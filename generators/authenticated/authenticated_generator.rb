@@ -2,7 +2,8 @@ require File.expand_path(File.dirname(__FILE__) + "/lib/insert_routes.rb")
 require 'digest/sha1'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
-                  :skip_routes => false,
+                  :skip_routes    => false,
+                  :old_passwords  => false,
                   :include_activation => false
                   
   attr_reader   :controller_name,
@@ -176,22 +177,22 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
          File.join('stories', 'rest_auth_stories.rb')
 
       else
-        m.template 'functional_test.rb',
+        m.template 'test/functional_test.rb',
                     File.join('test/functional',
                               controller_class_path,
                               "#{controller_file_name}_controller_test.rb")
-        m.template 'model_functional_test.rb',
+        m.template 'test/model_functional_test.rb',
                     File.join('test/functional',
                               model_controller_class_path,
                               "#{model_controller_file_name}_controller_test.rb")
-        m.template 'unit_test.rb',
+        m.template 'test/unit_test.rb',
                     File.join('test/unit',
                               class_path,
                               "#{file_name}_test.rb")
         if options[:include_activation]
-          m.template 'mailer_test.rb', File.join('test/unit', class_path, "#{file_name}_mailer_test.rb")
+          m.template 'test/mailer_test.rb', File.join('test/unit', class_path, "#{file_name}_mailer_test.rb")
         end
-        m.template 'fixtures.yml',
+        m.template 'spec/fixtures/users.yml',
                     File.join('test/fixtures',
                               "#{table_name}.yml")
       end
@@ -219,77 +220,96 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                      File.join('app/views', "#{file_name}_mailer", "#{action}.html.erb")
         end
       end
-
+      
       unless options[:skip_migration]
         m.migration_template 'migration.rb', 'db/migrate', :assigns => {
           :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
-      
       unless options[:skip_routes]
         m.route_resource  controller_singular_name
         m.route_resources model_controller_plural_name
       end
-      
     end
 
-    action = nil
-    action = $0.split("/")[1]
+    #
+    # Post-install notes
+    #
+    action = File.basename($0) # grok the action from './script/generate' or whatever
     case action
-      when "generate" 
-        puts
-        puts ("-" * 70)
-        puts "Don't forget to:"
-        puts
-        if options[:include_activation]
-          puts %(   map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
-          puts
-          puts "  - add an observer to config/environment.rb"
-          puts "    config.active_record.observers = :#{file_name}_observer"
-          puts
-        end
-        if options[:stateful]
-          puts "Also, don't forget to install the acts_as_state_machine plugin and set your resource:"
-          puts
-          puts "  svn export http://elitists.textdriven.com/svn/plugins/acts_as_state_machine/trunk vendor/plugins/acts_as_state_machine"
-          puts
-          puts "In config/routes.rb:"
-          puts "  map.resources :#{model_controller_file_name}, :member => { :suspend => :put, :unsuspend => :put, :purge => :delete }"
-          puts
-        end
-        puts "Try these for some familiar login URLs if you like:"
-        puts
-        puts %(map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
-        puts %(map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
-        puts %(map.login  '/login',  :controller => '#{controller_file_name}', :action => 'new')
-        puts %(map.logout '/logout', :controller => '#{controller_file_name}', :action => 'destroy')
-        puts
-        puts ("-" * 70)
-        puts
-      when "destroy" 
-        puts
-        puts ("-" * 70)
-        puts
-        puts "Thanks for using restful_authentication"
-        puts
-        puts "Don't forget to comment out the observer line in environment.rb"
-        puts "  (This was optional so it may not even be there)"
-        puts "  # config.active_record.observers = :#{file_name}_observer"
-        puts
-        puts ("-" * 70)
-        puts
-      else
-        puts
+    when "generate" 
+      puts "Ready to generate."
+      puts ("-" * 70)
+      puts "Once finished, don't forget to:"
+      puts
+      if options[:include_activation]
+        puts "- Add an observer to config/environment.rb"
+        puts "    config.active_record.observers = :#{file_name}_observer"
+      end
+      if options[:stateful]
+        puts "- Install the acts_as_state_machine plugin:"
+        puts "    svn export http://elitists.textdriven.com/svn/plugins/acts_as_state_machine/trunk vendor/plugins/acts_as_state_machine"
+      end
+      puts "- Add routes to these resources. In config/routes.rb, insert routes like:"
+      puts %(    map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
+      puts %(    map.login  '/login',  :controller => '#{controller_file_name}', :action => 'new')
+      puts %(    map.logout '/logout', :controller => '#{controller_file_name}', :action => 'destroy')
+      if options[:include_activation]
+        puts %(    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
+      end
+      if options[:stateful]
+        puts  "  and modify the map.resources :#{model_controller_file_name} line to include these actions:"
+        puts  "    map.resources :#{model_controller_file_name}, :member => { :suspend => :put, :unsuspend => :put, :purge => :delete }"
+      end
+      puts
+      puts ("-" * 70)
+      puts
+      if $rest_auth_site_key_from_generator.blank?
+        puts "You've set a nil site key. This preserves existing users' passwords,"
+        puts "but allows dictionary attacks in the unlikely event your database is"
+        puts "compromised and your site code is not.  See the README for more."
+      elsif $rest_auth_keys_are_new
+        puts "We've create a new site key in #{site_keys_file}.  If you have existing"
+        puts "user accounts their passwords will no longer work (see README). As always," 
+        puts "keep this file safe but don't post it in public."
+      else  
+        puts "We've reused the existing site key in #{site_keys_file}.  As always,"
+        puts "keep this file safe but don't post it in public."
+      end
+      puts
+      puts ("-" * 70)
+    when "destroy" 
+      puts
+      puts ("-" * 70)
+      puts
+      puts "Thanks for using restful_authentication"
+      puts
+      puts "Don't forget to comment out the observer line in environment.rb"
+      puts "  (This was optional so it may not even be there)"
+      puts "  # config.active_record.observers = :#{file_name}_observer"
+      puts
+      puts ("-" * 70)
+      puts
+    else
+      puts "Didn't understand the action '#{action}' -- you might have missed the 'after running me' instructions."
     end
-
+    
+    #
+    # Do the thing
+    #
     recorded_session
   end
 
   def has_rspec?
-    options[:rspec] || (File.exist?('spec') && File.directory?('spec'))
+    spec_dir = File.join(RAILS_ROOT, 'spec')
+    options[:rspec] ||= (File.exist?(spec_dir) && File.directory?(spec_dir)) unless (options[:rspec] == false)
   end
+  
+  #
+  # !! These must match the corresponding routines in by_password.rb !!
+  #
   def secure_digest(*args)
-    Digest::SHA1.hexdigest(args.flatten.join('&&'))
+    Digest::SHA1.hexdigest(args.flatten.join('--'))
   end
   def make_token
     secure_digest(Time.now, (1..10).map{ rand.to_s })
@@ -297,7 +317,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   def password_digest(password, salt)
     digest = $rest_auth_site_key_from_generator
     $rest_auth_digest_stretches_from_generator.times do
-      digest = secure_digest(salt, digest, password, $rest_auth_site_key_from_generator)
+      digest = secure_digest(digest, salt, password, $rest_auth_site_key_from_generator)
     end
     digest
   end
@@ -308,14 +328,22 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   # seed it with reasonable defaults otherwise
   #
   def load_or_initialize_site_keys
-    # begin 
-    #   require RAILS_ROOT + '/' + site_keys_file
-    # rescue Exception ; true end # don't complain
-    $rest_auth_site_key_from_generator         = (
-      (defined? REST_AUTH_SITE_KEY)         ? REST_AUTH_SITE_KEY : make_token)
-    $rest_auth_digest_stretches_from_generator = (
-      (defined? REST_AUTH_DIGEST_STRETCHES) ? REST_AUTH_DIGEST_STRETCHES : 10)  
-    puts [$rest_auth_site_key_from_generator, $rest_auth_digest_stretches_from_generator]
+    case 
+    when defined? REST_AUTH_SITE_KEY
+      if (options[:old_passwords]) && ((! REST_AUTH_SITE_KEY.blank?) || (REST_AUTH_DIGEST_STRETCHES != 1)) 
+        raise "You have a site key, but --old-passwords will overwrite it.  If this is really what you want, move the file #{site_keys_file} and re-run."
+      end
+      $rest_auth_site_key_from_generator         = REST_AUTH_SITE_KEY
+      $rest_auth_digest_stretches_from_generator = REST_AUTH_DIGEST_STRETCHES
+    when options[:old_passwords]
+      $rest_auth_site_key_from_generator         = nil
+      $rest_auth_digest_stretches_from_generator = 1
+      $rest_auth_keys_are_new                    = true
+    else
+      $rest_auth_site_key_from_generator         = make_token
+      $rest_auth_digest_stretches_from_generator = 10
+      $rest_auth_keys_are_new                    = true
+    end
   end  
   def site_keys_file
     File.join("config", "initializers", "site_keys.rb")
@@ -338,7 +366,11 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
              "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
       opt.on("--rspec",
              "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
+      opt.on("--no-rspec",
+             "Force test (not RSpec mode")                               { |v| options[:rspec] = false }
       opt.on("--skip-routes", 
              "Don't generate a resource line in config/routes.rb")       { |v| options[:skip_routes] = v }
+      opt.on("--old-passwords", 
+             "Use the older password encryption scheme (see README)")    { |v| options[:old_passwords] = v }
     end
 end
