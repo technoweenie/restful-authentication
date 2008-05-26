@@ -147,8 +147,8 @@ alter to suit. There are additional security minutae in @notes/README-Tradeoffs@
 * Add these familiar login URLs to your @config/routes.rb@ if you like:
 
      map.signup  '/signup', :controller => 'users',   :action => 'new' @
-     map.login   '/login',  :controller => 'session', :action => 'new' @
-     map.logout  '/logout', :controller => 'session', :action => 'destroy' @
+     map.login   '/login',  :controller => 'sessions', :action => 'new' @
+     map.logout  '/logout', :controller => 'sessions', :action => 'destroy' @
     
 * With @--include-activation@, also add to your @config/routes.rb@:
   
