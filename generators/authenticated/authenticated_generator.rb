@@ -229,6 +229,10 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       unless options[:skip_routes]
         m.route_resource  controller_singular_name
         m.route_resources model_controller_plural_name
+        m.route_name('signup', '/signup', {:controller => 'users', :action => 'new'})
+        m.route_name('register', '/register', {:controller => 'users', :action => 'create'})
+        m.route_name('login', '/login', {:controller => 'sessions', :action => 'new'})
+        m.route_name('logout', '/logout', {:controller => 'sessions', :action => 'destroy'})
       end
     end
 
