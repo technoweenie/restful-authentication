@@ -100,8 +100,8 @@ describe <%= model_controller_class_name %>Controller do
       route_for(:controller => '<%= model_controller_file_path %>', :action => 'index').should == "/<%= model_controller_file_path %>"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'new'} to /<%= model_controller_file_path %>/new" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'new').should == "/<%= model_controller_file_path %>/new"
+    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'new'} to /signup" do
+      route_for(:controller => '<%= model_controller_file_path %>', :action => 'new').should == "/signup"
     end
     
     it "should route {:controller => '<%= model_controller_file_path %>', :action => 'create'} to /<%= model_controller_file_path %>" do
