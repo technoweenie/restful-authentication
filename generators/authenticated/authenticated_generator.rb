@@ -227,12 +227,12 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
       unless options[:skip_routes]
-        m.route_resource  controller_singular_name
+        m.route_resource  controller_plural_name
         m.route_resources model_controller_plural_name
         m.route_name('signup', '/signup', {:controller => model_controller_plural_name, :action => 'new'})
         m.route_name('register', '/register', {:controller => model_controller_plural_name, :action => 'create'})
-        m.route_name('login', '/login', {:controller => controller_singular_name, :action => 'new'})
-        m.route_name('logout', '/logout', {:controller => controller_singular_name, :action => 'destroy'})
+        m.route_name('login', '/login', {:controller => controller_plural_name, :action => 'new'})
+        m.route_name('logout', '/logout', {:controller => controller_plural_name, :action => 'destroy'})
       end
     end
 
