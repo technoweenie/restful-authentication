@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '<%= ('/..'*controller_class_nesting_depth) + '/../spec_helper' %>'
 
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead
 # Then, you can remove it from this and the units test.
@@ -101,26 +101,26 @@ end
 
 describe <%= controller_class_name %>Controller do
   describe "route generation" do
-    it "should route {:controller => '<%= controller_file_path %>', :action => 'new'} to /login" do
-      route_for(:controller => '<%= controller_file_path %>', :action => 'new').should == "/login"
+    it "should route the new <%= controller_controller_name %> action correctly" do
+      route_for(:controller => '<%= controller_controller_name %>', :action => 'new').should == "/login"
     end
-    it "should route {:controller => '<%= controller_file_path %>', :action => 'create'} to /<%= controller_file_path %>" do
-      route_for(:controller => '<%= controller_file_path %>', :action => 'create').should == "/<%= controller_file_path %>"
+    it "should route the create <%= controller_controller_name %> correctly" do
+      route_for(:controller => '<%= controller_controller_name %>', :action => 'create').should == "/<%= controller_routing_path %>"
     end
-    it "should route {:controller => '<%= controller_file_path %>', :action => 'destroy'} to /logout" do
-      route_for(:controller => '<%= controller_file_path %>', :action => 'destroy').should == "/logout"
+    it "should route the destroy <%= controller_controller_name %> action correctly" do
+      route_for(:controller => '<%= controller_controller_name %>', :action => 'destroy').should == "/logout"
     end
   end
   
   describe "route recognition" do
-    it "should generate params {:controller => '<%= controller_file_path %>', :action => 'new'} from GET /login" do
-      params_from(:get, '/login').should == {:controller => '<%= controller_file_path %>', :action => 'new'}
+    it "should generate params from GET /login correctly" do
+      params_from(:get, '/login').should == {:controller => '<%= controller_controller_name %>', :action => 'new'}
     end
-    it "should generate params {:controller => '<%= controller_file_path %>', :action => 'create'} from POST /<%= controller_file_path %>" do
-      params_from(:post, '/<%= controller_file_path %>').should == {:controller => '<%= controller_file_path %>', :action => 'create'}
+    it "should generate params from POST /<%= controller_routing_path %> correctly" do
+      params_from(:post, '/<%= controller_routing_path %>').should == {:controller => '<%= controller_controller_name %>', :action => 'create'}
     end
-    it "should generate params {:controller => '<%= controller_file_path %>', :action => 'destroy'} from DELETE /<%= controller_file_path %>" do
-      params_from(:delete, '/logout').should == {:controller => '<%= controller_file_path %>', :action => 'destroy'}
+    it "should generate params from DELETE /<%= controller_routing_path %> correctly" do
+      params_from(:delete, '/logout').should == {:controller => '<%= controller_controller_name %>', :action => 'destroy'}
     end
   end
   
@@ -128,11 +128,11 @@ describe <%= controller_class_name %>Controller do
     before(:each) do
       get :new
     end
-    it "should route <%= table_name %>_path() to /<%= controller_file_path %>" do
-      <%= controller_file_name %>_path().should == "/<%= controller_file_path %>"
+    it "should route <%= controller_routing_name %>_path() correctly" do
+      <%= controller_routing_name %>_path().should == "/<%= controller_routing_path %>"
     end
-    it "should route new_<%= table_name.singularize %>_path() to /<%= controller_file_path %>/new" do
-      new_<%= controller_table_name.singularize %>_path().should == "/<%= controller_file_path %>/new"
+    it "should route new_<%= controller_routing_name %>_path() correctly" do
+      new_<%= controller_routing_name %>_path().should == "/<%= controller_routing_path %>/new"
     end
   end
   

@@ -32,9 +32,9 @@ Rails::Generator::Commands::Destroy.class_eval do
   end
   
   def route_name(name, path, options = {})
-    look_for = "\n  map.#{name} '#{path}', :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
-    logger.route "map.#{name} '#{path}', :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
-    gsub_file 'config/routes.rb', /(#{look_for})/mi, ''
+    look_for =   "\n  map.#{name} '#{path}', :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
+    logger.route "map.#{name} '#{path}',     :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
+    gsub_file    'config/routes.rb', /(#{look_for})/mi, ''
   end
 end
 

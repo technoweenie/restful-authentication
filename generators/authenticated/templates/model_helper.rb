@@ -49,7 +49,7 @@ module <%= model_controller_class_name %>Helper
     content_text      = options.delete(:content_text)
     content_text    ||= <%= file_name %>.send(options.delete(:content_method))
     options[:title] ||= <%= file_name %>.send(options.delete(:title_method))
-    link_to h(content_text), <%= file_name %>_path(<%= file_name %>), options
+    link_to h(content_text), <%= model_controller_routing_name.singularize %>_path(<%= file_name %>), options
   end
 
   #

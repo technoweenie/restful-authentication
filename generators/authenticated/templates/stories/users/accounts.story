@@ -13,8 +13,8 @@ Story: Creating an account
   #
   Scenario: Anonymous <%= file_name %> can start creating an account
     Given an anonymous <%= file_name %>
-    When  she goes to /<%= File.join(*[model_controller_class_path, model_controller_file_name].reject(&:blank?)) %>/new
-    Then  she should be at the new <%= model_controller_file_name %> page
+    When  she goes to /signup
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  the page should look AWESOME
      And  she should see a <form> containing a textfield: Login, textfield: Email, password: Password, password: 'Confirm Password', submit: 'Sign up'
 
@@ -48,7 +48,7 @@ Story: Creating an account
      And  the <%= file_name %> has activation_code: 'activate_me', activated_at: nil! 
      And  we try hard to remember the <%= file_name %>'s updated_at, and created_at
     When  she registers an account with login: 'reggie', password: 'monkey', and email: 'different@example.com'
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Login has already been taken'
      And  she should not see an errorExplanation message 'Email has already been taken'
      And  a <%= file_name %> with login: 'reggie' should exist
@@ -64,7 +64,7 @@ Story: Creating an account
      And  an activated <%= file_name %> named 'Reggie'
      And  we try hard to remember the <%= file_name %>'s updated_at, and created_at
     When  she registers an account with login: 'reggie', password: 'monkey', and email: 'reggie@example.com'
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Login has already been taken'
      And  she should not see an errorExplanation message 'Email has already been taken'
      And  a <%= file_name %> with login: 'reggie' should exist
@@ -83,7 +83,7 @@ Story: Creating an account
     Given an anonymous <%= file_name %>
      And  no <%= file_name %> with login: 'Oona' exists
     When  she registers an account with login: '',     password: 'monkey', password_confirmation: 'monkey' and email: 'unactivated@example.com'
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Login can't be blank'
      And  no <%= file_name %> with login: 'oona' should exist
      
@@ -91,7 +91,7 @@ Story: Creating an account
     Given an anonymous <%= file_name %>
      And  no <%= file_name %> with login: 'Oona' exists
     When  she registers an account with login: 'oona', password: '',       password_confirmation: 'monkey' and email: 'unactivated@example.com'
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Password can't be blank'
      And  no <%= file_name %> with login: 'oona' should exist
      
@@ -99,7 +99,7 @@ Story: Creating an account
     Given an anonymous <%= file_name %>
      And  no <%= file_name %> with login: 'Oona' exists
     When  she registers an account with login: 'oona', password: 'monkey', password_confirmation: ''       and email: 'unactivated@example.com'
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Password confirmation can't be blank'
      And  no <%= file_name %> with login: 'oona' should exist
      
@@ -107,7 +107,7 @@ Story: Creating an account
     Given an anonymous <%= file_name %>
      And  no <%= file_name %> with login: 'Oona' exists
     When  she registers an account with login: 'oona', password: 'monkey', password_confirmation: 'monkeY' and email: 'unactivated@example.com'
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Password doesn't match confirmation'
      And  no <%= file_name %> with login: 'oona' should exist
      
@@ -115,7 +115,7 @@ Story: Creating an account
     Given an anonymous <%= file_name %>
      And  no <%= file_name %> with login: 'Oona' exists
     When  she registers an account with login: 'oona', password: 'monkey', password_confirmation: 'monkey' and email: ''
-    Then  she should be at the new <%= model_controller_file_name %> page
+    Then  she should be at the '<%= model_controller_routing_path %>/new' page
      And  she should     see an errorExplanation message 'Email can't be blank'
      And  no <%= file_name %> with login: 'oona' should exist
     When  she registers an account with login: 'oona', password: 'monkey', password_confirmation: 'monkey' and email: 'unactivated@example.com'
@@ -146,7 +146,7 @@ Story: Activating an account
      And  the <%= file_name %> has activation_code: 'activate_me', activated_at: nil! 
      And  we try hard to remember the <%= file_name %>'s updated_at, and created_at
     When  she goes to /activate/activate_me
-    Then  she should be redirected to '<%= controller_file_name %>/new'
+    Then  she should be redirected to 'login'
     When  she follows that redirect!
     Then  she should see a notice message 'Signup complete!'
      And  a <%= file_name %> with login: 'reggie' should exist

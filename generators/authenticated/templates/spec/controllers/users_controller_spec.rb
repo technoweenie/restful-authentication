@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-
+require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_depth) + '/../spec_helper' %>'
+  
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead
 # Then, you can remove it from this and the units test.
 include AuthenticatedTestHelper
@@ -64,7 +64,7 @@ describe <%= model_controller_class_name %>Controller do
   it 'activates user' do
     <%= class_name %>.authenticate('aaron', 'monkey').should be_nil
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code
-    response.should redirect_to('/<%= controller_file_path %>/new')
+    response.should redirect_to('/login')
     flash[:notice].should_not be_nil
     flash[:error ].should     be_nil
     <%= class_name %>.authenticate('aaron', 'monkey').should == <%= table_name %>(:aaron)
@@ -96,74 +96,74 @@ end
 
 describe <%= model_controller_class_name %>Controller do
   describe "route generation" do
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'index'} to /<%= model_controller_file_path %>" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'index').should == "/<%= model_controller_file_path %>"
+    it "should route <%= model_controller_controller_name %>'s 'index' action correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'index').should == "/<%= model_controller_routing_path %>"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'new'} to /signup" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'new').should == "/signup"
+    it "should route <%= model_controller_controller_name %>'s 'new' action correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'new').should == "/signup"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'create'} to /<%= model_controller_file_path %>" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'create').should == "/<%= model_controller_file_path %>"
+    it "should route {:controller => '<%= model_controller_controller_name %>', :action => 'create'} correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'create').should == "/register"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'show', :id => '1'} to /<%= model_controller_file_path %>/1" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'show', :id => '1').should == "/<%= model_controller_file_path %>/1"
+    it "should route <%= model_controller_controller_name %>'s 'show' action correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'show', :id => '1').should == "/<%= model_controller_routing_path %>/1"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'edit', :id => '1'} to /<%= model_controller_file_path %>/1/edit" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'edit', :id => '1').should == "/<%= model_controller_file_path %>/1/edit"
+    it "should route <%= model_controller_controller_name %>'s 'edit' action correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'edit', :id => '1').should == "/<%= model_controller_routing_path %>/1/edit"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'update', :id => '1'} to /<%= model_controller_file_path %>/1" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'update', :id => '1').should == "/<%= model_controller_file_path %>/1"
+    it "should route <%= model_controller_controller_name %>'s 'update' action correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'update', :id => '1').should == "/<%= model_controller_routing_path %>/1"
     end
     
-    it "should route {:controller => '<%= model_controller_file_path %>', :action => 'destroy', :id => '1'} to /<%= model_controller_file_path %>/1" do
-      route_for(:controller => '<%= model_controller_file_path %>', :action => 'destroy', :id => '1').should == "/<%= model_controller_file_path %>/1"
+    it "should route <%= model_controller_controller_name %>'s 'destroy' action correctly" do
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'destroy', :id => '1').should == "/<%= model_controller_routing_path %>/1"
     end
   end
   
   describe "route recognition" do
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => 'index'} from GET /<%= model_controller_file_path %>" do
-      params_from(:get, '/<%= model_controller_file_path %>').should == {:controller => '<%= model_controller_file_path %>', :action => 'index'}
-      params_from(:get, '/<%= model_controller_file_path %>.xml').should == {:controller => '<%= model_controller_file_path %>', :action => 'index', :format => 'xml'}
-      params_from(:get, '/<%= model_controller_file_path %>.json').should == {:controller => '<%= model_controller_file_path %>', :action => 'index', :format => 'json'}
+    it "should generate params for <%= model_controller_controller_name %>'s index action from GET /<%= model_controller_routing_path %>" do
+      params_from(:get, '/<%= model_controller_routing_path %>').should == {:controller => '<%= model_controller_controller_name %>', :action => 'index'}
+      params_from(:get, '/<%= model_controller_routing_path %>.xml').should == {:controller => '<%= model_controller_controller_name %>', :action => 'index', :format => 'xml'}
+      params_from(:get, '/<%= model_controller_routing_path %>.json').should == {:controller => '<%= model_controller_controller_name %>', :action => 'index', :format => 'json'}
     end
     
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => 'new'} from GET /<%= model_controller_file_path %>" do
-      params_from(:get, '/<%= model_controller_file_path %>/new').should == {:controller => '<%= model_controller_file_path %>', :action => 'new'}
-      params_from(:get, '/<%= model_controller_file_path %>/new.xml').should == {:controller => '<%= model_controller_file_path %>', :action => 'new', :format => 'xml'}
-      params_from(:get, '/<%= model_controller_file_path %>/new.json').should == {:controller => '<%= model_controller_file_path %>', :action => 'new', :format => 'json'}
+    it "should generate params for <%= model_controller_controller_name %>'s new action from GET /<%= model_controller_routing_path %>" do
+      params_from(:get, '/<%= model_controller_routing_path %>/new').should == {:controller => '<%= model_controller_controller_name %>', :action => 'new'}
+      params_from(:get, '/<%= model_controller_routing_path %>/new.xml').should == {:controller => '<%= model_controller_controller_name %>', :action => 'new', :format => 'xml'}
+      params_from(:get, '/<%= model_controller_routing_path %>/new.json').should == {:controller => '<%= model_controller_controller_name %>', :action => 'new', :format => 'json'}
     end
     
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => 'create'} from POST /<%= model_controller_file_path %>" do
-      params_from(:post, '/<%= model_controller_file_path %>').should == {:controller => '<%= model_controller_file_path %>', :action => 'create'}
-      params_from(:post, '/<%= model_controller_file_path %>.xml').should == {:controller => '<%= model_controller_file_path %>', :action => 'create', :format => 'xml'}
-      params_from(:post, '/<%= model_controller_file_path %>.json').should == {:controller => '<%= model_controller_file_path %>', :action => 'create', :format => 'json'}
+    it "should generate params for <%= model_controller_controller_name %>'s create action from POST /<%= model_controller_routing_path %>" do
+      params_from(:post, '/<%= model_controller_routing_path %>').should == {:controller => '<%= model_controller_controller_name %>', :action => 'create'}
+      params_from(:post, '/<%= model_controller_routing_path %>.xml').should == {:controller => '<%= model_controller_controller_name %>', :action => 'create', :format => 'xml'}
+      params_from(:post, '/<%= model_controller_routing_path %>.json').should == {:controller => '<%= model_controller_controller_name %>', :action => 'create', :format => 'json'}
     end
     
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => 'show', :id => '1'} from GET /<%= model_controller_file_path %>/1" do
-      params_from(:get , '/<%= model_controller_file_path %>/1').should == {:controller => '<%= model_controller_file_path %>', :action => 'show', :id => '1'}
-      params_from(:get , '/<%= model_controller_file_path %>/1.xml').should == {:controller => '<%= model_controller_file_path %>', :action => 'show', :id => '1', :format => 'xml'}
-      params_from(:get , '/<%= model_controller_file_path %>/1.json').should == {:controller => '<%= model_controller_file_path %>', :action => 'show', :id => '1', :format => 'json'}
+    it "should generate params for <%= model_controller_controller_name %>'s show action from GET /<%= model_controller_routing_path %>/1" do
+      params_from(:get , '/<%= model_controller_routing_path %>/1').should == {:controller => '<%= model_controller_controller_name %>', :action => 'show', :id => '1'}
+      params_from(:get , '/<%= model_controller_routing_path %>/1.xml').should == {:controller => '<%= model_controller_controller_name %>', :action => 'show', :id => '1', :format => 'xml'}
+      params_from(:get , '/<%= model_controller_routing_path %>/1.json').should == {:controller => '<%= model_controller_controller_name %>', :action => 'show', :id => '1', :format => 'json'}
     end
     
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => 'edit', :id => '1'} from GET /<%= model_controller_file_path %>/1/edit" do
-      params_from(:get , '/<%= model_controller_file_path %>/1/edit').should == {:controller => '<%= model_controller_file_path %>', :action => 'edit', :id => '1'}
+    it "should generate params for <%= model_controller_controller_name %>'s edit action from GET /<%= model_controller_routing_path %>/1/edit" do
+      params_from(:get , '/<%= model_controller_routing_path %>/1/edit').should == {:controller => '<%= model_controller_controller_name %>', :action => 'edit', :id => '1'}
     end
     
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => update', :id => '1'} from PUT /<%= model_controller_file_path %>/1" do
-      params_from(:put , '/<%= model_controller_file_path %>/1').should == {:controller => '<%= model_controller_file_path %>', :action => 'update', :id => '1'}
-      params_from(:put , '/<%= model_controller_file_path %>/1.xml').should == {:controller => '<%= model_controller_file_path %>', :action => 'update', :id => '1', :format => 'xml'}
-      params_from(:put , '/<%= model_controller_file_path %>/1.json').should == {:controller => '<%= model_controller_file_path %>', :action => 'update', :id => '1', :format => 'json'}
+    it "should generate params {:controller => '<%= model_controller_controller_name %>', :action => update', :id => '1'} from PUT /<%= model_controller_routing_path %>/1" do
+      params_from(:put , '/<%= model_controller_routing_path %>/1').should == {:controller => '<%= model_controller_controller_name %>', :action => 'update', :id => '1'}
+      params_from(:put , '/<%= model_controller_routing_path %>/1.xml').should == {:controller => '<%= model_controller_controller_name %>', :action => 'update', :id => '1', :format => 'xml'}
+      params_from(:put , '/<%= model_controller_routing_path %>/1.json').should == {:controller => '<%= model_controller_controller_name %>', :action => 'update', :id => '1', :format => 'json'}
     end
     
-    it "should generate params {:controller => '<%= model_controller_file_path %>', :action => 'destroy', :id => '1'} from DELETE /<%= model_controller_file_path %>/1" do
-      params_from(:delete, '/<%= model_controller_file_path %>/1').should == {:controller => '<%= model_controller_file_path %>', :action => 'destroy', :id => '1'}
-      params_from(:delete, '/<%= model_controller_file_path %>/1.xml').should == {:controller => '<%= model_controller_file_path %>', :action => 'destroy', :id => '1', :format => 'xml'}
-      params_from(:delete, '/<%= model_controller_file_path %>/1.json').should == {:controller => '<%= model_controller_file_path %>', :action => 'destroy', :id => '1', :format => 'json'}
+    it "should generate params for <%= model_controller_controller_name %>'s destroy action from DELETE /<%= model_controller_routing_path %>/1" do
+      params_from(:delete, '/<%= model_controller_routing_path %>/1').should == {:controller => '<%= model_controller_controller_name %>', :action => 'destroy', :id => '1'}
+      params_from(:delete, '/<%= model_controller_routing_path %>/1.xml').should == {:controller => '<%= model_controller_controller_name %>', :action => 'destroy', :id => '1', :format => 'xml'}
+      params_from(:delete, '/<%= model_controller_routing_path %>/1.json').should == {:controller => '<%= model_controller_controller_name %>', :action => 'destroy', :id => '1', :format => 'json'}
     end
   end
   
@@ -172,26 +172,26 @@ describe <%= model_controller_class_name %>Controller do
       get :new
     end
     
-    it "should route <%= table_name %>_path() to /<%= model_controller_file_path %>" do
-      <%= table_name %>_path().should == "/<%= model_controller_file_path %>"
-      formatted_<%= table_name %>_path(:format => 'xml').should == "/<%= model_controller_file_path %>.xml"
-      formatted_<%= table_name %>_path(:format => 'json').should == "/<%= model_controller_file_path %>.json"
+    it "should route <%= model_controller_routing_name %>_path() to /<%= model_controller_routing_path %>" do
+      <%= model_controller_routing_name %>_path().should == "/<%= model_controller_routing_path %>"
+      formatted_<%= model_controller_routing_name %>_path(:format => 'xml').should == "/<%= model_controller_routing_path %>.xml"
+      formatted_<%= model_controller_routing_name %>_path(:format => 'json').should == "/<%= model_controller_routing_path %>.json"
     end
     
-    it "should route new_<%= table_name.singularize %>_path() to /<%= model_controller_file_path %>/new" do
-      new_<%= table_name.singularize %>_path().should == "/<%= model_controller_file_path %>/new"
-      formatted_new_<%= table_name.singularize %>_path(:format => 'xml').should == "/<%= model_controller_file_path %>/new.xml"
-      formatted_new_<%= table_name.singularize %>_path(:format => 'json').should == "/<%= model_controller_file_path %>/new.json"
+    it "should route new_<%= model_controller_routing_name.singularize %>_path() to /<%= model_controller_routing_path %>/new" do
+      new_<%= model_controller_routing_name.singularize %>_path().should == "/<%= model_controller_routing_path %>/new"
+      formatted_new_<%= model_controller_routing_name.singularize %>_path(:format => 'xml').should == "/<%= model_controller_routing_path %>/new.xml"
+      formatted_new_<%= model_controller_routing_name.singularize %>_path(:format => 'json').should == "/<%= model_controller_routing_path %>/new.json"
     end
     
-    it "should route <%= table_name.singularize %>_(:id => '1') to /<%= model_controller_file_path %>/1" do
-      <%= table_name.singularize %>_path(:id => '1').should == "/<%= model_controller_file_path %>/1"
-      formatted_<%= table_name.singularize %>_path(:id => '1', :format => 'xml').should == "/<%= model_controller_file_path %>/1.xml"
-      formatted_<%= table_name.singularize %>_path(:id => '1', :format => 'json').should == "/<%= model_controller_file_path %>/1.json"
+    it "should route <%= model_controller_routing_name.singularize %>_(:id => '1') to /<%= model_controller_routing_path %>/1" do
+      <%= model_controller_routing_name.singularize %>_path(:id => '1').should == "/<%= model_controller_routing_path %>/1"
+      formatted_<%= model_controller_routing_name.singularize %>_path(:id => '1', :format => 'xml').should == "/<%= model_controller_routing_path %>/1.xml"
+      formatted_<%= model_controller_routing_name.singularize %>_path(:id => '1', :format => 'json').should == "/<%= model_controller_routing_path %>/1.json"
     end
     
-    it "should route edit_<%= table_name.singularize %>_path(:id => '1') to /<%= model_controller_file_path %>/1/edit" do
-      edit_<%= table_name.singularize %>_path(:id => '1').should == "/<%= model_controller_file_path %>/1/edit"
+    it "should route edit_<%= model_controller_routing_name.singularize %>_path(:id => '1') to /<%= model_controller_routing_path %>/1/edit" do
+      edit_<%= model_controller_routing_name.singularize %>_path(:id => '1').should == "/<%= model_controller_routing_path %>/1/edit"
     end
   end
   

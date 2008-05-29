@@ -65,7 +65,7 @@ module AuthenticatedSystem
       respond_to do |format|
         format.html do
           store_location
-          redirect_to new_<%= controller_singular_name %>_path
+          redirect_to new_<%= controller_routing_name %>_path
         end
         # format.any doesn't work in rails version < http://dev.rubyonrails.org/changeset/8987
         # you may want to change format.any to e.g. format.any(:js, :xml)

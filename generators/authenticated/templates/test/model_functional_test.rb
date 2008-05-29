@@ -72,7 +72,7 @@ class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
   def test_should_activate_user
     assert_nil <%= class_name %>.authenticate('aaron', 'test')
     get :activate, :activation_code => <%= table_name %>(:aaron).activation_code
-    assert_redirected_to '/session/new'
+    assert_redirected_to '/<%= controller_routing_path %>/new'
     assert_not_nil flash[:notice]
     assert_equal <%= table_name %>(:aaron), <%= class_name %>.authenticate('aaron', 'monkey')
   end

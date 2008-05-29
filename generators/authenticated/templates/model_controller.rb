@@ -44,7 +44,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     when (!params[:activation_code].blank?) && <%= file_name %> && !<%= file_name %>.active?
       <%= file_name %>.activate!
       flash[:notice] = "Signup complete! Please sign in to continue."
-      redirect_to new_<%= controller_singular_name %>_path
+      redirect_to '/login'
     when params[:activation_code].blank?
       flash[:error] = "The activation code was missing.  Please follow the URL from your email."
       redirect_back_or_default('/')
@@ -56,22 +56,22 @@ class <%= model_controller_class_name %>Controller < ApplicationController
 <% end %><% if options[:stateful] %>
   def suspend
     @<%= file_name %>.suspend! 
-    redirect_to <%= table_name %>_path
+    redirect_to <%= model_controller_routing_name %>_path
   end
 
   def unsuspend
     @<%= file_name %>.unsuspend! 
-    redirect_to <%= table_name %>_path
+    redirect_to <%= model_controller_routing_name %>_path
   end
 
   def destroy
     @<%= file_name %>.delete!
-    redirect_to <%= table_name %>_path
+    redirect_to <%= model_controller_routing_name %>_path
   end
 
   def purge
     @<%= file_name %>.destroy
-    redirect_to <%= table_name %>_path
+    redirect_to <%= model_controller_routing_name %>_path
   end
   
   # There's no page here to update or destroy a <%= file_name %>.  If you add those, be

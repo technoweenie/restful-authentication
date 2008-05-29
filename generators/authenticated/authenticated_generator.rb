@@ -5,7 +5,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                   :skip_routes    => false,
                   :old_passwords  => false,
                   :include_activation => false
-                  
+
   attr_reader   :controller_name,
                 :controller_class_path,
                 :controller_file_path,
@@ -14,6 +14,9 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                 :controller_class_name,
                 :controller_singular_name,
                 :controller_plural_name,
+                :controller_routing_name,                 # new_session_path
+                :controller_routing_path,                 # /session/new
+                :controller_controller_name,              # sessions
                 :controller_file_name
   alias_method  :controller_table_name, :controller_plural_name
   attr_reader   :model_controller_name,
@@ -23,40 +26,52 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                 :model_controller_class_nesting_depth,
                 :model_controller_class_name,
                 :model_controller_singular_name,
-                :model_controller_plural_name
+                :model_controller_plural_name,
+                :model_controller_routing_name,           # new_user_path
+                :model_controller_routing_path,           # /users/new
+                :model_controller_controller_name         # users
   alias_method  :model_controller_file_name,  :model_controller_singular_name
   alias_method  :model_controller_table_name, :model_controller_plural_name
 
   def initialize(runtime_args, runtime_options = {})
     super
-    
+
     @rspec = has_rspec?
 
-    @controller_name = args.shift || 'sessions'
+    @controller_name = (args.shift || 'sessions').pluralize
     @model_controller_name = @name.pluralize
 
     # sessions controller
     base_name, @controller_class_path, @controller_file_path, @controller_class_nesting, @controller_class_nesting_depth = extract_modules(@controller_name)
     @controller_class_name_without_nesting, @controller_file_name, @controller_plural_name = inflect_names(base_name)
     @controller_singular_name = @controller_file_name.singularize
-
     if @controller_class_nesting.empty?
       @controller_class_name = @controller_class_name_without_nesting
     else
       @controller_class_name = "#{@controller_class_nesting}::#{@controller_class_name_without_nesting}"
     end
+    @controller_routing_name  = @controller_singular_name
+    @controller_routing_path  = @controller_file_path.singularize
+    @controller_controller_name = @controller_plural_name
 
     # model controller
     base_name, @model_controller_class_path, @model_controller_file_path, @model_controller_class_nesting, @model_controller_class_nesting_depth = extract_modules(@model_controller_name)
     @model_controller_class_name_without_nesting, @model_controller_singular_name, @model_controller_plural_name = inflect_names(base_name)
-    
+
     if @model_controller_class_nesting.empty?
       @model_controller_class_name = @model_controller_class_name_without_nesting
     else
       @model_controller_class_name = "#{@model_controller_class_nesting}::#{@model_controller_class_name_without_nesting}"
     end
-    
+    @model_controller_routing_name    = @table_name
+    @model_controller_routing_path    = @model_controller_file_path
+    @model_controller_controller_name = @model_controller_plural_name
+
     load_or_initialize_site_keys()
+    
+    if options[:dump_generator_attribute_names] 
+      dump_generator_attribute_names
+    end
   end
 
   def manifest
@@ -88,7 +103,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.directory File.join('spec/models', class_path)
         m.directory File.join('spec/helpers', model_controller_class_path)
         m.directory File.join('spec/fixtures', class_path)
-        m.directory File.join('stories', class_path,            table_name)
+        m.directory File.join('stories', model_controller_file_path)
         m.directory File.join('stories', 'steps')
       else
         m.directory File.join('test/functional', controller_class_path)
@@ -156,6 +171,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                               "#{file_name}_spec.rb")
         m.template 'spec/fixtures/users.yml',
                     File.join('spec/fixtures',
+                               class_path,
                               "#{table_name}.yml")
 
         # RSpec Stories
@@ -168,9 +184,9 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.template  'stories/steps/user_steps.rb',
          File.join('stories/steps/', "#{file_name}_steps.rb")
         m.template  'stories/users/accounts.story',
-         File.join('stories', table_name, 'accounts.story')
+         File.join('stories', model_controller_file_path, 'accounts.story')
         m.template  'stories/users/sessions.story',
-         File.join('stories', table_name, 'sessions.story')
+         File.join('stories', model_controller_file_path, 'sessions.story')
         m.template  'stories/rest_auth_stories_helper.rb',
          File.join('stories', 'rest_auth_stories_helper.rb')
         m.template  'stories/rest_auth_stories.rb',
@@ -194,6 +210,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         end
         m.template 'spec/fixtures/users.yml',
                     File.join('test/fixtures',
+                              class_path,
                               "#{table_name}.yml")
       end
 
@@ -220,19 +237,20 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                      File.join('app/views', "#{file_name}_mailer", "#{action}.html.erb")
         end
       end
-      
+
       unless options[:skip_migration]
         m.migration_template 'migration.rb', 'db/migrate', :assigns => {
           :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
       unless options[:skip_routes]
-        m.route_resource  controller_plural_name
+        # Note that this fails for nested classes -- you're on your own with setting up the routes.
+        m.route_resource  controller_singular_name
         m.route_resources model_controller_plural_name
-        m.route_name('signup', '/signup', {:controller => model_controller_plural_name, :action => 'new'})
+        m.route_name('signup',   '/signup',   {:controller => model_controller_plural_name, :action => 'new'})
         m.route_name('register', '/register', {:controller => model_controller_plural_name, :action => 'create'})
-        m.route_name('login', '/login', {:controller => controller_plural_name, :action => 'new'})
-        m.route_name('logout', '/logout', {:controller => controller_plural_name, :action => 'destroy'})
+        m.route_name('login',    '/login',    {:controller => controller_controller_name, :action => 'new'})
+        m.route_name('logout',   '/logout',   {:controller => controller_controller_name, :action => 'destroy'})
       end
     end
 
@@ -241,7 +259,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     #
     action = File.basename($0) # grok the action from './script/generate' or whatever
     case action
-    when "generate" 
+    when "generate"
       puts "Ready to generate."
       puts ("-" * 70)
       puts "Once finished, don't forget to:"
@@ -274,15 +292,15 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts "compromised and your site code is not.  See the README for more."
       elsif $rest_auth_keys_are_new
         puts "We've create a new site key in #{site_keys_file}.  If you have existing"
-        puts "user accounts their passwords will no longer work (see README). As always," 
+        puts "user accounts their passwords will no longer work (see README). As always,"
         puts "keep this file safe but don't post it in public."
-      else  
+      else
         puts "We've reused the existing site key in #{site_keys_file}.  As always,"
         puts "keep this file safe but don't post it in public."
       end
       puts
       puts ("-" * 70)
-    when "destroy" 
+    when "destroy"
       puts
       puts ("-" * 70)
       puts
@@ -297,7 +315,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     else
       puts "Didn't understand the action '#{action}' -- you might have missed the 'after running me' instructions."
     end
-    
+
     #
     # Do the thing
     #
@@ -308,7 +326,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     spec_dir = File.join(RAILS_ROOT, 'spec')
     options[:rspec] ||= (File.exist?(spec_dir) && File.directory?(spec_dir)) unless (options[:rspec] == false)
   end
-  
+
   #
   # !! These must match the corresponding routines in by_password.rb !!
   #
@@ -332,9 +350,9 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   # seed it with reasonable defaults otherwise
   #
   def load_or_initialize_site_keys
-    case 
+    case
     when defined? REST_AUTH_SITE_KEY
-      if (options[:old_passwords]) && ((! REST_AUTH_SITE_KEY.blank?) || (REST_AUTH_DIGEST_STRETCHES != 1)) 
+      if (options[:old_passwords]) && ((! REST_AUTH_SITE_KEY.blank?) || (REST_AUTH_DIGEST_STRETCHES != 1))
         raise "You have a site key, but --old-passwords will overwrite it.  If this is really what you want, move the file #{site_keys_file} and re-run."
       end
       $rest_auth_site_key_from_generator         = REST_AUTH_SITE_KEY
@@ -348,33 +366,107 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       $rest_auth_digest_stretches_from_generator = 10
       $rest_auth_keys_are_new                    = true
     end
-  end  
+  end
   def site_keys_file
     File.join("config", "initializers", "site_keys.rb")
   end
-  
-  protected
-    # Override with your own usage banner.
-    def banner
-      "Usage: #{$0} authenticated ModelName [ControllerName]"
+
+protected
+  # Override with your own usage banner.
+  def banner
+    "Usage: #{$0} authenticated ModelName [ControllerName]"
+  end
+
+  def add_options!(opt)
+    opt.separator ''
+    opt.separator 'Options:'
+    opt.on("--skip-migration",
+      "Don't generate a migration file for this model")           { |v| options[:skip_migration] = v }
+    opt.on("--include-activation",
+      "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
+    opt.on("--stateful",
+      "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
+    opt.on("--rspec",
+      "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
+    opt.on("--no-rspec",
+      "Force test (not RSpec mode")                               { |v| options[:rspec] = false }
+    opt.on("--skip-routes",
+      "Don't generate a resource line in config/routes.rb")       { |v| options[:skip_routes] = v }
+    opt.on("--old-passwords",
+      "Use the older password encryption scheme (see README)")    { |v| options[:old_passwords] = v }
+    opt.on("--dump-generator-attrs",
+      "(generator debug helper)")                                 { |v| options[:dump_generator_attribute_names] = v }
+  end
+
+  def dump_generator_attribute_names
+    generator_attribute_names = [
+      :table_name,
+      :file_name,
+      :class_name,
+      :controller_name,
+      :controller_class_path,
+      :controller_file_path,
+      :controller_class_nesting,
+      :controller_class_nesting_depth,
+      :controller_class_name,
+      :controller_singular_name,
+      :controller_plural_name,
+      :controller_routing_name,                 # new_session_path
+      :controller_routing_path,                 # /session/new
+      :controller_controller_name,              # sessions
+      :controller_file_name,
+      :controller_table_name, :controller_plural_name,
+      :model_controller_name,
+      :model_controller_class_path,
+      :model_controller_file_path,
+      :model_controller_class_nesting,
+      :model_controller_class_nesting_depth,
+      :model_controller_class_name,
+      :model_controller_singular_name,
+      :model_controller_plural_name,
+      :model_controller_routing_name,           # new_user_path
+      :model_controller_routing_path,           # /users/new
+      :model_controller_controller_name,        # users
+      :model_controller_file_name,  :model_controller_singular_name,
+      :model_controller_table_name, :model_controller_plural_name,
+    ]
+    generator_attribute_names.each do |attr|
+      puts "%-40s %s" % ["#{attr}:", self.send(attr)]  # instance_variable_get("@#{attr.to_s}"
     end
 
-    def add_options!(opt)
-      opt.separator ''
-      opt.separator 'Options:'
-      opt.on("--skip-migration", 
-             "Don't generate a migration file for this model")           { |v| options[:skip_migration] = v }
-      opt.on("--include-activation", 
-             "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
-      opt.on("--stateful", 
-             "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
-      opt.on("--rspec",
-             "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
-      opt.on("--no-rspec",
-             "Force test (not RSpec mode")                               { |v| options[:rspec] = false }
-      opt.on("--skip-routes", 
-             "Don't generate a resource line in config/routes.rb")       { |v| options[:skip_routes] = v }
-      opt.on("--old-passwords", 
-             "Use the older password encryption scheme (see README)")    { |v| options[:old_passwords] = v }
-    end
+  end
 end
+
+# ./script/generate authenticated FoonParent::Foon SporkParent::Spork -p --force --rspec --dump-generator-attrs
+# table_name:                              foon_parent_foons
+# file_name:                               foon
+# class_name:                              FoonParent::Foon
+# controller_name:                         SporkParent::Sporks
+# controller_class_path:                   spork_parent
+# controller_file_path:                    spork_parent/sporks
+# controller_class_nesting:                SporkParent
+# controller_class_nesting_depth:          1
+# controller_class_name:                   SporkParent::Sporks
+# controller_singular_name:                spork
+# controller_plural_name:                  sporks
+# controller_routing_name:                 spork
+# controller_routing_path:                 spork_parent/spork
+# controller_controller_name:              sporks
+# controller_file_name:                    sporks
+# controller_table_name:                   sporks
+# controller_plural_name:                  sporks
+# model_controller_name:                   FoonParent::Foons
+# model_controller_class_path:             foon_parent
+# model_controller_file_path:              foon_parent/foons
+# model_controller_class_nesting:          FoonParent
+# model_controller_class_nesting_depth:    1
+# model_controller_class_name:             FoonParent::Foons
+# model_controller_singular_name:          foons
+# model_controller_plural_name:            foons
+# model_controller_routing_name:           foon_parent_foons
+# model_controller_routing_path:           foon_parent/foons
+# model_controller_controller_name:        foons
+# model_controller_file_name:              foons
+# model_controller_singular_name:          foons
+# model_controller_table_name:             foons
+# model_controller_plural_name:            foons

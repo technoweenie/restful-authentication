@@ -132,7 +132,7 @@ end
 
 def activate_<%= file_name %>! *args
   activate_<%= file_name %> *args
-  response.should redirect_to('/<%= controller_file_path %>/new')
+  response.should redirect_to('/login')
   follow_redirect!
   response.should have_flash("notice", /Signup complete!/)
 end<% end %>
@@ -140,7 +140,7 @@ end<% end %>
 def log_in_<%= file_name %> <%= file_name %>_params=nil
   @<%= file_name %>_params ||= <%= file_name %>_params
   <%= file_name %>_params  ||= @<%= file_name %>_params
-  post "/<%= controller_file_path %>", <%= file_name %>_params
+  post "/<%= controller_routing_path %>", <%= file_name %>_params
   @<%= file_name %> = <%= class_name %>.find_by_login(<%= file_name %>_params['login'])
   controller.current_<%= file_name %>
 end

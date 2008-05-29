@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_depth) + '/../spec_helper' %>'
 include ApplicationHelper
 include <%= model_controller_class_name %>Helper
 include AuthenticatedTestHelper
@@ -24,7 +24,7 @@ describe <%= model_controller_class_name %>Helper do
       lambda { link_to_<%= file_name %>(nil) }.should raise_error('Invalid <%= file_name %>')
     end
     it "should link to the given <%= file_name %>" do
-      should_receive(:<%= file_name %>_path).at_least(:once).and_return('/<%= model_controller_file_path %>/1')
+      should_receive(:<%= model_controller_routing_name.singularize %>_path).at_least(:once).and_return('/<%= model_controller_file_path %>/1')
       link_to_<%= file_name %>(@<%= file_name %>).should have_tag("a[href='/<%= model_controller_file_path %>/1']")
     end
     it "should use given link text if :content_text is specified" do
@@ -84,7 +84,7 @@ describe <%= model_controller_class_name %>Helper do
       stub!(:current_<%= file_name %>).and_return(@<%= file_name %>)
     end
     it "should link to the given <%= file_name %>" do
-      should_receive(:<%= file_name %>_path).at_least(:once).and_return('/<%= model_controller_file_path %>/1')
+      should_receive(:<%= model_controller_routing_name.singularize %>_path).at_least(:once).and_return('/<%= model_controller_file_path %>/1')
       link_to_current_<%= file_name %>().should have_tag("a[href='/<%= model_controller_file_path %>/1']")
     end
     it "should use given link text if :content_text is specified" do
