@@ -1,8 +1,8 @@
-<h1>Sign up as a new user</h1>
-<%% @<%= file_name %>.password = @<%= file_name %>.password_confirmation = nil %>
+<h1>Sign up</h1>
+<%% @<%= model_name %>.password = @<%= model_name %>.password_confirmation = nil %>
 
-<%%= error_messages_for :<%= file_name %> %>
-<%% form_for :<%= file_name %>, :url => <%= model_controller_routing_name %>_path do |f| -%>
+<%%= error_messages_for :<%= model_name %> %>
+<%% form_for :<%= model_name %>, :url => <%= model_controller_routing_name %>_path do |f| -%>
 <p><label for="login">Login</label><br/>
 <%%= f.text_field :login %></p>
 

@@ -1,6 +1,7 @@
 <h1>Log In</h1>
 
-<%% form_tag <%= controller_routing_name %>_path do -%>
+<%%= error_messages_for :session %>
+<%% form_tag session_path do -%>
 <p><label for="login">Login</label><br/>
 <%%= text_field_tag 'login', @login %></p>
 
