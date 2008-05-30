@@ -18,8 +18,15 @@ You're almost finished!  Before your app and your tests will run, you must:
   handle the redirect to home. You need this anyway for your site to do stuff,
   but the stories in particular will break without it.
 
+
+* If you use a public repository for your code (such as github, rubyforge,
+  gitorious, etc.) make sure to NOT post your site_keys.rb (add a line like
+  '/config/initializers/site_keys.rb' to your .gitignore or do the svn ignore
+  dance), but make sure you DO keep it backed up somewhere safe.
+  
 ******************************************************************************
 
-Finally, please keep in mind that this is a new (beta) version of the plugin,
-and much has changed.  If you want the older version see
+Finally: this is a new (beta) version of the plugin (5/2008). Much has changed.
+If you're following along from a tutorial and you're sad and angry because
+nothing makes sense, you may find contentment with the older version:
   http://github.com/technoweenie/restful-authentication/tree/classic

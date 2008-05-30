@@ -41,28 +41,48 @@ These best version of the release notes are in the notes/ directory in the
 -- look there for the latest version.  The wiki versions are taken (manually)
 from there.
 
-
 Finally, here are some excellent tutorials covering restful-authentication:
 * "Railscasts #67: restful-authentication":http://railscasts.com/episodes/67
 * "Court3nay's 'Sample Empty Rails App'":http://plugins.svn.caboo.se/browser/r78/court3nay/empty_apps/restful_auth_rspec
 * "Bootstrapping a Rails 2.0 App with restful-authentication":http://crazyrails.com/how-to-install-restful-authentication/
+They are out of date for this new version, but may be helpful nonetheless
 
-***************************************************************************
+********************************************************************************
+
+			      Changes for v2.0b0
+
+********************************************************************************
+
 <a id="AWESOME"/> </a>
 h2. Exciting new features
 
-h3. Stories
+The system has been split up to give a clear distinction between authentication
+(who are you?), authorization (is he allowed to just take the plutonium like
+that?), policy (note to staff: no one is allowed to take plutonium) and access
+control (step away from the reactor, bubba).
 
-There are now RSpec stories that allow expressive, enjoyable tests for the
-authentication code. The flexible code for resource testing in stories was
-extended from "Ben Mabey's.":http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
+The plugin now generates *much* less app-space code: the controllers are super
+skinny now, and if any security flaws are discovered it should be less painful
+to stay current.
 
-h3. Modularize to match security design patterns:
+Out of the box, the plugin will stay the heck out of your way, implementing the
+popular "users can do stuff and no-one else can" security model.  But if your
+security needs extend beyond that, there are clear hooks for you to add security
+components that play nice with restful-authentication.  It should also be easy
+to *decouple* components such as login-by-password or remember-me-tokens if you
+don't want that.
 
-* Authentication (currently: password, browser cookie token, HTTP basic)
-* Trust metric (email validation) 
-* Authorization (stateful roles)
-* Leave a flexible framework that will play nicely with other access control / policy definition / trust metric plugins
+Finally, there have been several minor security fixes, largely centered around
+implementing best practices recommended in the "Open Web Application Security
+Project":http://www.owasp.org/index.php/Guide_Table_of_Contents and other
+references (see notes/ for more).
+
+h3. Specs & Stories
+
+There is a robust rspec test suite: 300+ specs with near-100% coverage, and
+RSpec stories that allow expressive, enjoyable tests for the authentication
+code. The flexible code for resource testing in stories was extended from "Ben
+Mabey's.":http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
 
 h3. Other
 
@@ -70,70 +90,35 @@ h3. Other
 * Uniform handling of logout, remember_token
 * Stricter email, login field validation
 * Minor security fixes -- see CHANGELOG
-
-***************************************************************************
-<a id="COMPATIBILITY"/> </a>
-h2. Non-backwards compatible Changes
-
-Here are a few changes in the May 2008 release that increase "Defense in Depth"
-but may require changes to existing accounts
-
-* If you have an existing site, none of these changes are compelling enough to
-  warrant migrating your userbase.
-* If you are generating for a new site, all of these changes are low-impact.
-  You should apply them.
-
-h3. Passwords
-
-The new password encryption (using a site key salt and stretching) will break
-existing user accounts' passwords.  We recommend you use the --old-passwords
-option or write a migration tool and submit it as a patch.  See the
-[[Tradeoffs]] note for more information.
-
-h3. Validations
-
-By default, 
+* There are additional security minutae in @notes/README-Tradeoffs@ -- only the
+  paranoid or the curious need bother, though.
 
 ***************************************************************************
 <a id="INSTALL"/> </a>
 h2. Installation
 
-This is a basic restful authentication generator for rails, taken from
-acts as authenticated.  Currently it requires Rails 1.2.6 or above.
+This is a basic restful authentication generator for rails. Currently it
+requires Rails 2.0+, and for any reasonable test coverage the rspec and
+rspec-rails plugins.
 
 To use:
 
-  ./script/generate authenticated user sessions \
-    --include-activation \
-    --stateful \
-    --rspec \
+  ./script/generate authenticated User 
+    --rspec          \
     --skip-migration \
-    --skip-routes \
+    --skip-routes    \
     --old-passwords
 
-* The first parameter specifies the model that gets created in signup (typically
-  a user or account model).  A model with migration is created, as well as a
-  basic controller with the create method. You probably want to say "User" here.
-
-* The second parameter specifies the session controller name.  This is the
-  controller that handles the actual login/logout function on the site.
-  (probably: "Session").
-
-* --include-activation: Generates the code for a ActionMailer and its respective
-  Activation Code through email.
-
-* --stateful: Builds in support for acts_as_state_machine and generates
-  activation code.  (@--stateful@ implies @--include-activation@). Based on the
-  idea at [[http://www.vaporbase.com/postings/stateful_authentication]]. Passing
-  @--skip-migration@ will skip the user migration, and @--skip-routes@ will skip
-  resource generation -- both useful if you've already run this generator.
+* The first parameter specifies the model that gets created in signup (the user
+  model).  A model with migration is created, as well as a basic controller with
+  the create method. You probably want to say "User" here.
 
 * --rspec: Generate RSpec tests and Stories in place of standard rails tests.
   This requires the
     "RSpec and Rspec-on-rails plugins":http://rspec.info/
   (make sure you "./script/generate rspec" after installing RSpec.)  The rspec
-  and story suite are much more thorough than the rails tests, and changes are
-  unlikely to be backported.
+  and story suite are much more thorough than the rails tests (a few dozen tests
+  vs. a few hundred specs)
   
 * --old-passwords: Use the older password scheme (see [[#COMPATIBILITY]], above)
 
@@ -146,46 +131,51 @@ To use:
 <a id="POST-INSTALL"/> </a>
 h2. After installing
 
-The below assumes a Model named 'User' please alter to suit. There are
-additional security minutae in @notes/README-Tradeoffs@ -- only the paranoid or
-the curious need bother, though.
+The below assumes a Model named 'User'. So does much of the code in lib/.
 
 * Add the system to your app by putting this in application.rb:
-    include AuthenticationController,
-            Authentication::ByPasswordController, 
-            Authentication::ByCookieTokenController,
-            AuthorizationController
 
-  and by putting this in spec/spec_helper.rb or test/test_helper.rb as
+    security_components :security_policy, 
+      :access_control => [:login_required],
+      :authentication => [:by_cookie_token, :by_password]
+
+* Putting this in spec/spec_helper.rb or test/test_helper.rb as
   appropriate:
   
     include AuthenticationTestHelper
-
-* Add these familiar login URLs to your @config/routes.rb@ if you like:
-
-     map.signup  '/signup', :controller => 'users',   :action => 'new' @
-     map.signin  '/login',  :controller => 'session', :action => 'new' @
-     map.signout '/logout', :controller => 'session', :action => 'destroy' @
-    
-* With @--include-activation@, also add to your @config/routes.rb@:
-  
-    map.activate '/activate/:activation_code', :controller => 'users', :action => 'activate', :activation_code => nil) 
-    
-  and add an observer to @config/environment.rb@:
-  
-    config.active_record.observers = :users_observer
-
-* With @--stateful@, add an observer to config/environment.rb:
-  
-    config.active_record.observers = :user_observer
-  
-  and modify the users resource line to read
-  
-    map.resources :users, :member => { :suspend   => :put,
-                                       :unsuspend => :put,
-                                       :purge     => :delete } 
 
 * If you use a public repository for your code (such as github, rubyforge,
   gitorious, etc.) make sure to NOT post your site_keys.rb (add a line like
   '/config/initializers/site_keys.rb' to your .gitignore or do the svn ignore
   dance), but make sure you DO keep it backed up somewhere safe.
+
+***************************************************************************
+<a id="COMPATIBILITY"/> </a>
+h2. Non-backwards compatible Changes
+
+This is a new (beta) version of the plugin (5/2008). Much has changed.
+If you're following along from a tutorial and you're sad and angry because
+nothing makes sense, you may find contentment with the older version:
+  http://github.com/technoweenie/restful-authentication/tree/classic
+Here are a few changes that may require changes to existing accounts
+
+* Stateful roles and email-activation have their own plugin now
+
+* Passwords: The new password encryption (using a site key salt and stretching)
+  will break existing user accounts' passwords.  We recommend you use the
+  --old-passwords option or write a migration tool and submit it as a patch.
+  See the [[Tradeoffs]] note for more information.
+
+* Validations are much stricter validation by default: logins can only be
+  /[\w\.\+@\-]+/, email has to look liken an email, password between 6, 40
+  characters long
+
+* Big changes to the internals: see CHANGELOG
+
+* the :login_required before_filter lives in its own component now. You'll need
+  to make your application controller look like
+
+    security_components :security_policy, 
+      :access_control => [:login_required],
+      :authentication => [:by_cookie_token, :by_password]
+    before_filter :login_required, :except => [:index, :show]
