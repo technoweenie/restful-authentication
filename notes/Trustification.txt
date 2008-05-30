@@ -16,6 +16,12 @@ h2. Reputation
   akismet, etc.
   session duration
 
+* Negative Captchas (eg form field hidden by javascript that only a bot would see):
+  http://www.rorsecurity.info/2008/04/04/webappsec-the-idea-of-negative-captchas/
+  http://nedbatchelder.com/text/stopbots.html
+  
+* Matt Cutts from Google on Spam, Trust, Reputation: http://blip.tv/file/858304
+
 h2. Accountability
 
 Does the person tied to this identity stand to lose or gain anything based on this action?
@@ -25,6 +31,7 @@ h2. Past history
 
 * past history
 ** we can revisit past trust decisions based on revised trust estimates
+* length of membership (discounted for activity)
 * recency of errors (reduce trust on an application exception)
 
 h2. Commitment
@@ -39,11 +46,12 @@ h2. Commitment
 h2. Identity Binding
 
 * Stale sessions
-  bq. "If your application allows users to be logged in for long periods of time
-  ensure that controls are in place to revalidate a user’s authorization to a
-  resource. For example, if Bob has the role of “Top Secret” at 1:00, and at
+  bq. "If your application allows visitors to be logged in for long periods of
+  time ensure that controls are in place to revalidate a user’s authorization to
+  a resource. For example, if Bob has the role of “Top Secret” at 1:00, and at
   2:00 while he is logged in his role is reduced to Secret he should not be able
-  to access “Top Secret” data any more." -- http://www.owasp.org/index.php/Guide_to_Authorization
+  to access “Top Secret” data any more." --
+  http://www.owasp.org/index.php/Guide_to_Authorization
 
 * how I authenticated: for instance, 'logged in by cookie' << 'logged in by password'
 

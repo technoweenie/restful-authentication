@@ -40,7 +40,13 @@ These best version of the release notes are in the notes/ directory in the
 "source code":http://github.com/technoweenie/restful-authentication/tree/master
 -- look there for the latest version.  The wiki versions are taken (manually)
 from there.
-  
+
+
+Finally, here are some excellent tutorials covering restful-authentication:
+* "Railscasts #67: restful-authentication":http://railscasts.com/episodes/67
+* "Court3nay's 'Sample Empty Rails App'":http://plugins.svn.caboo.se/browser/r78/court3nay/empty_apps/restful_auth_rspec
+* "Bootstrapping a Rails 2.0 App with restful-authentication":http://crazyrails.com/how-to-install-restful-authentication/
+
 ***************************************************************************
 <a id="AWESOME"/> </a>
 h2. Exciting new features
@@ -140,15 +146,26 @@ To use:
 <a id="POST-INSTALL"/> </a>
 h2. After installing
 
-The below assumes a Model named 'User' and a Controller named 'Session'; please
-alter to suit. There are additional security minutae in @notes/README-Tradeoffs@
--- only the paranoid or the curious need bother, though.
+The below assumes a Model named 'User' please alter to suit. There are
+additional security minutae in @notes/README-Tradeoffs@ -- only the paranoid or
+the curious need bother, though.
+
+* Add the system to your app by putting this in application.rb:
+    include AuthenticationController,
+            Authentication::ByPasswordController, 
+            Authentication::ByCookieTokenController,
+            AuthorizationController
+
+  and by putting this in spec/spec_helper.rb or test/test_helper.rb as
+  appropriate:
+  
+    include AuthenticationTestHelper
 
 * Add these familiar login URLs to your @config/routes.rb@ if you like:
 
      map.signup  '/signup', :controller => 'users',   :action => 'new' @
-     map.login   '/login',  :controller => 'sessions', :action => 'new' @
-     map.logout  '/logout', :controller => 'sessions', :action => 'destroy' @
+     map.signin  '/login',  :controller => 'session', :action => 'new' @
+     map.signout '/logout', :controller => 'session', :action => 'destroy' @
     
 * With @--include-activation@, also add to your @config/routes.rb@:
   

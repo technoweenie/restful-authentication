@@ -1,0 +1,72 @@
+For app with user
+
+sign user_password with app key
+submit, use given session signing_key
+
+AWS does let you see your signing key
+==> better that we treat it like password recovery:
+    make a new one (replacing the old one), notify user/app
+    by email
+AWS uses 2007-01-31T23:59:59Z. timestamp --or-- you can set an
+ expiration time (for timestamp, exp time is 15 minutes)
+
+=====================
+# include no empty parameters
+base_request = [
+  sorted_params => a=sadf b=1234 c=23462356
+  gmt_epoch_seconds =>
+  resource_version =>
+  app_id => 
+  user_id => 
+  SignatureVersion => 1
+  ]
+
+==============
+auth 
+  auth_digest = SHA1(base_request)
+  auth_token  = RSA(auth_digest, private_key)
+or
+  auth_token = SHA1(base_request, ",sekrit:", SHARED_SECRET)
+
+==============
+
+send a=asdf&b=1234&c=23462356&gmts=123456789&&signed=asdfasdf==
+
+From AWS dox:
+  For both signature methods, do not URL encode the concatenated string before computing the signature. URL encode the computed signature and other query parameters as specified in RFC1738, section 2.2. In addition, make sure to encode the + character although it is not required by RFC1738. This is required because the + character is interpreted as a blank space by Sun Java classes that perform URL decoding.
+
+  1 Create the string you'll use when generating the signature:
+    a Sort all request parameters alphabetically, ignoring case.
+      Include SignatureVersion in the list but not Signature. Do not list as "empty" any optional parameters that are not included in the request. In other words, if no value for ParameterA is specified in the request, do not include a ParameterA entry in this sorted list.
+    b Form a string by concatenating each request parameter's name with its value.
+      The format of the string is:
+        Param-name1Param-value1Param-name2Param-value2...Param-nameNParam-valueN
+      The parameter names are case sensitive. Do not include any separators in this string, such as question marks (?), ampersands (&), or equals signs (=). Do not URL encode the parameter values.
+   2 Calculate an RFC 2104-compliant HMAC-SHA1 Signatures using your Secret Access Key as the key and the string you just created.
+     For more information, go to http://www.faqs.org/rfcs/rfc2104.html.
+   3 Convert the resulting value to base64.
+   4 URL encode the resulting value as specified in RFC 1738, section 2.2.
+     This is required because base64 encoding can result in characters that are not legal in a URL, such as plus signs (+), slashes (/), and equals signs (=).
+   5 Pass this final value in the Signature request parameter.
+
+===============
+
+links
+
+RSA Labs Glossary			http://www.rsa.com/rsalabs/node.asp?id=2373
+Techcyclopedia on Auth'ctn	http://www.techweb.com/encyclopedia/defineterm.jhtml?term=authentication&x=13&y=4
+
+
+
+Thread on web svcs auth		http://www.ruby-forum.com/topic/64632#new
+Public APIs
+	Flickr dox			http://www.flickr.com/services/api/auth.spec.html
+	Amazon Web Svcs		http://docs.amazonwebservices.com/AmazonSimpleDB/2007-11-07/DeveloperGuide/WhatIsAuthentication.html
+OAuth
+	Wikipedia			http://en.wikipedia.org/wiki/OAuth
+	Ruby Gem			http://oauth.rubyforge.org/
+	Good OAuth Tutorial	http://stakeventures.com/articles/2008/02/23/developing-oauth-clients-in-ruby
+	Rails Scaffold		http://code.google.com/p/oauth4r/
+	Specification		http://oauth.net/documentation/getting-started
+	Rails OAuth Provider	http://stakeventures.com/articles/2007/11/26/how-to-turn-your-rails-site-into-an-oauth-provider
+

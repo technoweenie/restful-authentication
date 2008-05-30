@@ -23,10 +23,9 @@ post.  Frak!  Thus, it's disabled by defauly.
 
 On the other hand, this does moderately reduce your defense-in-depth against a
 "Cross-Site Request Forgery":http://en.wikipedia.org/wiki/CSRF attack.  To
-enable session_resetting, look for any
+enable session_resetting, uncomment the
    # reset session
-lines in the app/controllers/session_controller.rb and
-app/controllers/users_controller.rb and uncomment them.
+lines in the current_user= method of AuthenticationController.
 
 ***************************************************************************
 h2. Site Key
@@ -35,14 +34,14 @@ A Site key gives additional protection against a dictionary attack if your
 DB is ever compromised.  With no site key, we store
   DB_password = hash(user_password, DB_user_salt)
 If your database were to be compromised you'd be vulnerable to a dictionary
-attack on all your stupid users' passwords.  With a site key, we store
+attack on all your stupid members' passwords.  With a site key, we store
   DB_password = hash(user_password, DB_user_salt, Code_site_key)
 That means an attacker needs access to both your site's code *and* its
 database to mount an "offline dictionary attack.":http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html
 
 It's probably of minor importance, but recommended by best practices: 'defense
 in depth'.  Needless to say, if you upload this to github or the youtubes or
-otherwise place it in public view you'll kinda defeat the point.  Your users'
+otherwise place it in public view you'll kinda defeat the point.  Your members'
 passwords are still secure, and the world won't end, but defense_in_depth -= 1.
 
 Please note: if you change this, all the passwords will be invalidated, so DO
@@ -90,6 +89,19 @@ one-second best-practices value, while those with existing userbases (whose
 passwords would otherwise no longer work) should leave the value at one.
 
 ***************************************************************************
+h2. Secure digest
+
+The passwords are hashed using the SHA1 digest, a 160-byte secure hash
+algorithm.  If you have access to a stronger digest function such as SHA-256 or
+AES-128 drop that in.
+
+However, at the point your security policy requires this level of defense
+against db-compromised brute-forcing of user passwords, you should investigate
+the "Secure remote password protocol":http://en.wikipedia.org/wiki/Secure_remote_password_protocol -- and
+well before that you should commission a professional security audit of your
+site.
+
+***************************************************************************
 h2. Token regeneration
 
 The session and the remember_token should both be expired and regenerated
@@ -104,15 +116,24 @@ brute force attack.)  It does mean we set the cookie more often.
 
 
 ***************************************************************************
+h2. Passwords & tokens in browser
+
+* Sites with strong security concerns should set password fields to autocomplete 'off'
+    password_field_tag 'password', nil, :autocomplete=>'off' 
+
+* Sites with strong security concerns should *never* allow login_by_cookie.
+
+***************************************************************************
 h2. Field validation
 
 We restrict login names to only contain the characters
 <nowiki>A-Za-z0-9.-_@</nowiki> This allows (most) email addresses and is safe
 for urls, database expressions (the at sign, technically reserved in a url, will
 survive in most browsers).  If you want to be more permissive:
-*  "URL-legal characters":http://www.blooberry.com/indexdot/html/topics/urlencoding.htm are <nowiki>-_.!~*'()</nowiki>
-*  "XML-legal characters":http://www.sklar.com/blog/archives/96-XML-vs.-Control-Characters.html are <nowiki>Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]</nowiki>
-*  "Email-address legal characters":http://tools.ietf.org/html/rfc2822#section-3.4.1 are <nowiki>0-9a-zA-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.</nowiki> but see "this discussion of what is sane"http://www.regular-expressions.info/email.html (as opposed to legal)
+* "URL-legal characters":http://www.blooberry.com/indexdot/html/topics/urlencoding.htm are <nowiki>-_.!~*'()</nowiki>
+* "XML-legal characters":http://www.sklar.com/blog/archives/96-XML-vs.-Control-Characters.html are <nowiki>Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]</nowiki>
+* "Email-address legal characters":http://tools.ietf.org/html/rfc2822#section-3.4.1 are <nowiki>0-9a-zA-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.</nowiki> but see "this discussion of what is sane"http://www.regular-expressions.info/email.html (as opposed to legal)
+* "LDAP characters that need special treatment":http://www.owasp.org/index.php/LDAP_Injection_Testing_AoC include <nowiki>space # , \ + ; & | ! = ~ > < * ( )</nowiki> and possibly others
 
 We restrict email addresses to match only those actually seen in the wild,
 invalidating some that are technically allowed (characters such as % and ! that

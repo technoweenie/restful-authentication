@@ -1,3 +1,10 @@
-require File.dirname(__FILE__) + '/lib/authentication'
-require File.dirname(__FILE__) + '/lib/authentication/by_password'
-require File.dirname(__FILE__) + '/lib/authentication/by_cookie_token'
+REST_AUTH_DIR = File.dirname(__FILE__) unless defined? REST_AUTH_DIR
+
+%w[
+  security_components
+  authentication
+  access_control
+  identity
+].each do |f|
+  require f
+end

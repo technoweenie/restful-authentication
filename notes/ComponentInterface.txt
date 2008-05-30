@@ -1,0 +1,48 @@
+
+Security components should restrict themselves as far as possible to the
+following hooks:
+
+Controller:
+
+A singular controller model named 'session', and helper/controller methods named
+
+* current_user -- a User instance if logged in, false or nil if not.  Calling
+  this method will attempt to passively log in the user -- either pulling up
+  their current login from the session, or (if you include the components) by
+  cookie token or HTTP basic authentication.
+
+* logged_in? -- literal true if logged in, literal false if not.  Calling this
+  method, like current_user, will attempt to passively log in the user.
+
+* demand_authorization! :for => user, :to => action, :on => resource, :extra => anything_extra
+  Demand authorization, returning true if authorized or raising a subclass of
+  SecurityError exception if not authorized.
+* authorized?  :for => user, :to => action, :on => resource, :extra => anything_extra
+  Asks for authorization, returning false (not authorized) or a true value
+  (authorized).
+
+* Access Control
+  Two filters:
+** login_required
+** demand_authorization! 
+
+User model:
+
+* has_role?
+
+Internal hooks:
+
+* try_login_chain
+  Chain for passive login methods
+
+* logout_chain
+  Call chain for cleanup before logout happens.
+
+* get_authorization
+  Replace with your authorization function. If not authorized, it should return
+  either false or a SecurityError-type exception.  If visitor is authorized, it
+  may return any other true value.
+
+* is_denial?
+  If authorization can return obligations with its decision, augment is_denial?
+  to recognize a denial-with-obligations (whatever form that might take)

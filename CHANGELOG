@@ -1,17 +1,131 @@
-h1. Internal Changes to code
+As always, the most up-to-date version of the CHANGELOG file is in the source
+code tree, not the wiki.  The git log is even better than either.
 
-As always, this is just a copy-and-pasted version of the CHANGELOG file in the source code tree.
+********************************************************************************
 
-h2. Changes for the May, 2008 version of restful-authentication
+			      Changes for v2.0b0
 
-h3. Changes to user model
+********************************************************************************
 
-* recently_activated? belongs only if stateful
-* Gave migration a 40-char limit on remember_token & an index on users by login
-* **Much** stricter login and email validation
-* put length constraints in migration too
-* password in 6, 40
+The system has been split up to give a clear distinction between authentication
+(who are you?), authorization (is he allowed to just take the plutonium like
+that?), policy (note to staff: no one is allowed to take plutonium) and access
+control (step away from the reactor, bubba).
+
+The plugin now generates *much* less app-space code: the controllers are super
+skinny now, and if any security flaws are discovered it should be less painful
+to stay current.
+
+Out of the box, the plugin will stay the heck out of your way, implementing the
+popular "users can do stuff and no-one else can" security model.  But if your
+security needs extend beyond that, there are clear hooks for you to add security
+components that play nice with restful-authentication.  It should also be easy
+to *decouple* components such as login-by-password or remember-me-tokens if you
+don't want that.
+
+There is a robust rspec test suite with near-100% coverage, along with a
+framework for building RSpec stories.  
+
+Finally, there have been several minor security fixes, largely centered around
+implementing best practices recommended in the "Open Web Application Security
+Project":http://www.owasp.org/index.php/Guide_Table_of_Contents and other
+references (see notes/ for more).
+
+
+********************************************************************************
+
+The abstract implementation is divided among lib/authentication.rb and
+lib/access_control.rb, with concrete code (Authentication::ByPassword,
+AccessControl::LoginRequired, &c) in subdirectories.
+
+* logged_in?, current_user, current_user= are basically the same. current_user's
+  passive login behaviour now happens through the try_login_chain.  Cookie_token
+  & basic_auth hook in automagically when included, restoring the old behaviour.
+
+* A session login is 'passive' -- it's meant to mimic the presence of state, and
+  implies no change in logged-in status.  All other login methods should call
+  become_logged_in_as!, and should not set current_user= directly.  (The old
+  version of restful_authentication will let a non-activated user log in by HTTP
+  basic).
+
+* authorize? now has a bossy friend, demand_authorization! -- where authorize
+  returns false, demand_authorization! raises an exception. Both now take a
+  params hash of the form
+    :for => subject, :to => action, :on => resource, :extra => whatever
+  and hand it off to the #get_authorization stub.  get_authorization returns
+  something that is_denial? (false or a SecurityError exception) to say 'deny',
+  and any other true value to say 'allow'.
+
+* Most of the routines 'Fail-closed' (aka Positive Authentication; see
+  http://owasp.org/index.php/Guide_to_Authentication#Positive_Authentication) --
+  use exception handling to route authentication/access control violations, and
+  commit no resources until all conditions pass (or rollback on
+  failure). handle_signin_error shows one reasonable response chain.
+
+* access_denied is now named handle_access_denied as is automatically installed
+  as a rescue_from handler.
+
+* Cookie handling (controller & model) is all in authentication/by_cookie_token.
+  Password handling (controller & model) is all in authentication/by_password. I
+  know the MVC-pattern violation will make some squirm, but this code *should*
+  be opaque to the model at large, and security code should be compartmentalized
+  -- this is all properly controller code, even the parts within the model.
+
+* The logout routine calls a logout_chain for any resources that need to be
+  destroyed on logout.  (Clearing the server&client cookie token, for example).
+
+--------------------------------------------------------------------------------
+
+Model, controllers
+
+* are much skinnier, by handing almost everything off to library code. They
+  route by exception handling and not conditional branching.
+ 
+* password and password_confirmation now have filter_parameter_logging by default.
+
+* User#authenticate now **only** checks the password.  User activation & other
+  authorization is handled by the demand_authorization! chain -- specifically, by
+  demand_authorization :for => user, :to => :login
+
+* Much stricter validation by default:
+** logins can only be /[\w\.\+@\-]+/
+** email has to look liken an email
+** password between 6, 40
 * salt and remember_token now much less predictability
+
+Stateful Roles and Email Validation will get their own generator.
+
+********************************************************************************
+
+Things that might make you sad:
+
+* The old-skool Test::Unit &c are still present but won't be maintained (there
+  are a couple dozen tests vs. a couple hundred specs).
+
+* If you have existing users, make sure to use the --old-passwords flag.
+
+* You have to manually include the modules into your controller, and the
+  authentication_test_helper into your spec_helper/test_helper -- we don't fake
+  it for you any more.
+
+* You can name your SessionsController anything you like, as long as it's
+  "SessionsController", and you can name your User resource anything you like,
+  as long as you enjoy doing a search/replace through the code in lib/.  A
+  review of google hits for restful_authentication showed almost no-one using
+  alternate names, so it's now more Opinionated, for maintainability and Playing
+  Nicely with Others.
+
+* The specs and stories will explode if you generate a nested (Admin::User)
+  resource.  If you actually use this, please fix it and send back a patch.
+
+
+********************************************************************************
+
+			  Changes from the svn version
+
+********************************************************************************
+
+h2. Changes for the v1.1 version of restful-authentication
 
 h3. Changes to session_controller
 
@@ -36,6 +150,8 @@ h3. Changes to users_controller
 * made the implicit login only happen for non-activationed sites
 * On a failed signup, kick you back to the signin screen (but strip out the password & confirmation)
 * more descriptive error messages in activate()
+* recently_activated? belongs only if stateful
+* migration has 40-char limit on remember_token & an index on users by login
 
 h3. users_helper
 

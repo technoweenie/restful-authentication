@@ -96,16 +96,17 @@ the elves, nerdy scientist), and we have no control over those tokens.
 
 The solution is to not care, or rather to reframe our goals.
 
-What we actually want is not to /control/ users' actions, but to /predict/ them.
-When Mr. Blonde helps Mr. White rob a jewelry store it's a security failure for
-the store but a success for the crime gang.  When Mr. Orange (an undercover cop)
-shoots Mr. Blonde it's a security failure for the crime gang and a success for
-the police.  We want to know how to use
+What we actually want is not to /control/ visitors' actions, but to /predict/
+them.  When Mr. Blonde helps Mr. White rob a jewelry store it's a security
+failure for the store but a success for the crime gang.  When Mr. Orange (an
+undercover cop) shoots Mr. Blonde it's a security failure for the crime gang and
+a success for the police.  We want to know how to use
 
   ( identity, past actions ) => (trust, future actions)
 
 If you can predict someone is a vandal or troll, don't let them change pages, or
-only let them post to Ye Flaming Pitte of Flamage.
+only let them post to Ye Flaming Pitte of Flamage.  Or for instance mark all
+content with rel="nofollow" *except* those from higher-trust metric identities
 
 We can to reasonable satisfaction authenticate a token: only grant that
 identity to visitors who bear that token.  So this part is fine:

@@ -1,1 +1,1 @@
-./script/generate authenticated USERMODEL CONTROLLERNAME
+./script/generate authentication User

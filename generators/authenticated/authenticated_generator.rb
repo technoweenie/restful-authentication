@@ -1,24 +1,11 @@
 require File.expand_path(File.dirname(__FILE__) + "/lib/insert_routes.rb")
 require 'digest/sha1'
-class AuthenticatedGenerator < Rails::Generator::NamedBase
+class AuthenticationGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
                   :skip_routes    => false,
                   :old_passwords  => false,
                   :include_activation => false
 
-  attr_reader   :controller_name,
-                :controller_class_path,
-                :controller_file_path,
-                :controller_class_nesting,
-                :controller_class_nesting_depth,
-                :controller_class_name,
-                :controller_singular_name,
-                :controller_plural_name,
-                :controller_routing_name,                 # new_session_path
-                :controller_routing_path,                 # /session/new
-                :controller_controller_name,              # sessions
-                :controller_file_name
-  alias_method  :controller_table_name, :controller_plural_name
   attr_reader   :model_controller_name,
                 :model_controller_class_path,
                 :model_controller_file_path,
@@ -27,230 +14,152 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                 :model_controller_class_name,
                 :model_controller_singular_name,
                 :model_controller_plural_name,
-                :model_controller_routing_name,           # new_user_path
-                :model_controller_routing_path,           # /users/new
-                :model_controller_controller_name         # users
+                :model_controller_controller_name,
+                :model_controller_routing_path,
+                :model_controller_routing_name,
+                :fixtures_name,
+                :model_name
+
   alias_method  :model_controller_file_name,  :model_controller_singular_name
   alias_method  :model_controller_table_name, :model_controller_plural_name
+
+  def dump_generator_variable_names
+
+  end
 
   def initialize(runtime_args, runtime_options = {})
     super
 
     @rspec = has_rspec?
+    options[:tests] ||= ! options[:rspec]
 
-    @controller_name = (args.shift || 'sessions').pluralize
+    #
+    # Set up users controller names
+    #
     @model_controller_name = @name.pluralize
+    @model_name = file_name
 
-    # sessions controller
-    base_name, @controller_class_path, @controller_file_path, @controller_class_nesting, @controller_class_nesting_depth = extract_modules(@controller_name)
-    @controller_class_name_without_nesting, @controller_file_name, @controller_plural_name = inflect_names(base_name)
-    @controller_singular_name = @controller_file_name.singularize
-    if @controller_class_nesting.empty?
-      @controller_class_name = @controller_class_name_without_nesting
-    else
-      @controller_class_name = "#{@controller_class_nesting}::#{@controller_class_name_without_nesting}"
-    end
-    @controller_routing_name  = @controller_singular_name
-    @controller_routing_path  = @controller_file_path.singularize
-    @controller_controller_name = @controller_plural_name
+    base_name, @model_controller_class_path, @model_controller_file_path,
+      @model_controller_class_nesting, @model_controller_class_nesting_depth =
+      extract_modules(@model_controller_name)
 
-    # model controller
-    base_name, @model_controller_class_path, @model_controller_file_path, @model_controller_class_nesting, @model_controller_class_nesting_depth = extract_modules(@model_controller_name)
-    @model_controller_class_name_without_nesting, @model_controller_singular_name, @model_controller_plural_name = inflect_names(base_name)
+    @model_controller_class_name_without_nesting,
+      @model_controller_singular_name, @model_controller_plural_name =
+      inflect_names(base_name)
 
     if @model_controller_class_nesting.empty?
       @model_controller_class_name = @model_controller_class_name_without_nesting
     else
       @model_controller_class_name = "#{@model_controller_class_nesting}::#{@model_controller_class_name_without_nesting}"
     end
-    @model_controller_routing_name    = @table_name
-    @model_controller_routing_path    = @model_controller_file_path
+    # functional names
+    @fixtures_name = @table_name
+    @model_controller_routing_path = @model_controller_file_path
+    @model_controller_routing_name = @table_name
     @model_controller_controller_name = @model_controller_plural_name
-
+    #
+    # Get existing site keys, so we don't tromp over them.
+    #
     load_or_initialize_site_keys()
-    
-    if options[:dump_generator_attribute_names] 
+    if options[:dump_generator_attribute_names]
       dump_generator_attribute_names
     end
   end
 
+  def template_spec m, dir, src, nesting_path, dest
+    spec_file = File.join(*["spec", dir, nesting_path, "#{dest}_spec.rb"].compact)
+    m.directory File.dirname(spec_file)
+    m.template  "spec/#{dir}/#{src}_spec.rb", spec_file
+  end
+
+  def controller_spec m, src, nesting_path, dest, routing_spec=false
+    template_spec m, "controllers", "#{src}_controller",         nesting_path, "#{dest}_controller"
+    template_spec m, "controllers", "#{src}_controller_routing", nesting_path, "#{dest}_controller_routing"
+  end
+
+
+
   def manifest
     recorded_session = record do |m|
       # Check for class naming collisions.
-      m.class_collisions controller_class_path,       "#{controller_class_name}Controller", # Sessions Controller
-                                                      "#{controller_class_name}Helper"
-      m.class_collisions model_controller_class_path, "#{model_controller_class_name}Controller", # Model Controller
+      m.class_collisions model_controller_class_path, "#{model_controller_class_name}Controller", # Users Controller
                                                       "#{model_controller_class_name}Helper"
-      m.class_collisions class_path,                  "#{class_name}", "#{class_name}Mailer", "#{class_name}MailerTest", "#{class_name}Observer"
-      m.class_collisions [], 'AuthenticatedSystem', 'AuthenticatedTestHelper'
+      # FIXME -- need to update the module names here
+      # m.class_collisions [], 'AuthenticationSystem', 'AuthenticationTestHelper'
 
-      # Controller, helper, views, and test directories.
-      m.directory File.join('app/models', class_path)
-      m.directory File.join('app/controllers', controller_class_path)
-      m.directory File.join('app/controllers', model_controller_class_path)
-      m.directory File.join('app/helpers', controller_class_path)
-      m.directory File.join('app/views', controller_class_path, controller_file_name)
-      m.directory File.join('app/views', class_path, "#{file_name}_mailer") if options[:include_activation]
 
-      m.directory File.join('app/controllers', model_controller_class_path)
-      m.directory File.join('app/helpers', model_controller_class_path)
-      m.directory File.join('app/views', model_controller_class_path, model_controller_file_name)
-      m.directory File.join('config/initializers')
+      m.directory File.join('app/models',           class_path)
+      m.directory File.join('app/controllers',      model_controller_class_path)
+      m.directory File.join('app/helpers',          model_controller_class_path)
+      m.directory File.join('app/views',            model_controller_class_path, model_controller_file_name)
+      m.directory File.join('app/views/sessions')
+      m.directory File.join('lib')
 
-      if @rspec
-        m.directory File.join('spec/controllers', controller_class_path)
-        m.directory File.join('spec/controllers', model_controller_class_path)
-        m.directory File.join('spec/models', class_path)
-        m.directory File.join('spec/helpers', model_controller_class_path)
-        m.directory File.join('spec/fixtures', class_path)
-        m.directory File.join('stories', model_controller_file_path)
-        m.directory File.join('stories', 'steps')
-      else
-        m.directory File.join('test/functional', controller_class_path)
-        m.directory File.join('test/functional', model_controller_class_path)
-        m.directory File.join('test/unit', class_path)
-        m.directory File.join('test/fixtures', class_path)
-      end
+      # Session
 
-      m.template 'model.rb',
-                  File.join('app/models',
-                            class_path,
-                            "#{file_name}.rb")
-
-      if options[:include_activation]
-        %w( mailer observer ).each do |model_type|
-          m.template "#{model_type}.rb", File.join('app/models',
-                                               class_path,
-                                               "#{file_name}_#{model_type}.rb")
-        end
-      end
-
-      m.template 'controller.rb',
-                  File.join('app/controllers',
-                            controller_class_path,
-                            "#{controller_file_name}_controller.rb")
-
-      m.template 'model_controller.rb',
-                  File.join('app/controllers',
-                            model_controller_class_path,
-                            "#{model_controller_file_name}_controller.rb")
-
-      m.template 'authenticated_system.rb',
-                  File.join('lib', 'authenticated_system.rb')
-
-      m.template 'authenticated_test_helper.rb',
-                  File.join('lib', 'authenticated_test_helper.rb')
-
-      m.template 'site_keys.rb', site_keys_file
+      # Model, Controller, helper, and views.
+      m.template 'user.rb',                         File.join('app/models',      class_path,                  "#{model_name}.rb")
+      m.template 'users_controller.rb',             File.join('app/controllers', model_controller_class_path, "#{model_controller_file_name}_controller.rb")
+      m.template 'sessions_controller.rb',           File.join('app/controllers', "sessions_controller.rb")
+      m.template 'users_helper.rb',                 File.join('app/helpers',     model_controller_class_path, "#{model_controller_file_name}_helper.rb")
+      m.template 'views/signup.html.erb',           File.join('app/views',       model_controller_class_path, model_controller_file_name, "new.html.erb")
+      m.template 'views/login.html.erb',            File.join('app/views',       'sessions',                                               "new.html.erb")
+      m.template 'views/_users_hello_or_login.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "_hello_or_login.html.erb")
+      m.template 'authentication_test_helper.rb',   File.join('lib',             'authentication_test_helper.rb')
+      m.template 'security_policy.rb',              File.join('lib',             'security_policy.rb')
 
       if @rspec
         # RSpec Specs
-        m.template  'spec/controllers/users_controller_spec.rb',
-                    File.join('spec/controllers',
-                              model_controller_class_path,
-                              "#{model_controller_file_name}_controller_spec.rb")
-        m.template  'spec/controllers/sessions_controller_spec.rb',
-                    File.join('spec/controllers',
-                              controller_class_path,
-                              "#{controller_file_name}_controller_spec.rb")
-        m.template  'spec/controllers/access_control_spec.rb',
-                    File.join('spec/controllers',
-                              controller_class_path,
-                              "access_control_spec.rb")
-        m.template  'spec/controllers/authenticated_system_spec.rb',
-                    File.join('spec/controllers',
-                              controller_class_path,
-                              "authenticated_system_spec.rb")
-        m.template  'spec/helpers/users_helper_spec.rb',
-                    File.join('spec/helpers',
-                              model_controller_class_path,
-                              "#{table_name}_helper_spec.rb")
-        m.template  'spec/models/user_spec.rb',
-                    File.join('spec/models',
-                              class_path,
-                              "#{file_name}_spec.rb")
-        m.template 'spec/fixtures/users.yml',
-                    File.join('spec/fixtures',
-                               class_path,
-                              "#{table_name}.yml")
+        controller_spec m, 'users',               model_controller_class_path, model_controller_file_name, true
+        controller_spec m, 'sessions',            nil,                         'sessions',                 true
+        template_spec m,   'controllers',         'access_control_test',        nil,                       'access_control_test'
+        template_spec m,   'models',              'user',                       class_path,                model_name
+        template_spec m,   'models',              'identity_password',          class_path,                'identity_password'
+        template_spec m,   'models',              'identity_cookie_token',      class_path,                'identity_cookie_token'
+        template_spec m,   'helpers',             'users_helper',               model_controller_class_path, "#{model_controller_file_name}_helper"
 
-        # RSpec Stories
-        m.template  'stories/steps/ra_navigation_steps.rb',
-         File.join('stories/steps/ra_navigation_steps.rb')
-        m.template  'stories/steps/ra_response_steps.rb',
-         File.join('stories/steps/ra_response_steps.rb')
-        m.template  'stories/steps/ra_resource_steps.rb',
-         File.join('stories/steps/ra_resource_steps.rb')
-        m.template  'stories/steps/user_steps.rb',
-         File.join('stories/steps/', "#{file_name}_steps.rb")
-        m.template  'stories/users/accounts.story',
-         File.join('stories', model_controller_file_path, 'accounts.story')
-        m.template  'stories/users/sessions.story',
-         File.join('stories', model_controller_file_path, 'sessions.story')
-        m.template  'stories/rest_auth_stories_helper.rb',
-         File.join('stories', 'rest_auth_stories_helper.rb')
-        m.template  'stories/rest_auth_stories.rb',
-         File.join('stories', 'rest_auth_stories.rb')
-
-      else
-        m.template 'test/functional_test.rb',
-                    File.join('test/functional',
-                              controller_class_path,
-                              "#{controller_file_name}_controller_test.rb")
-        m.template 'test/model_functional_test.rb',
-                    File.join('test/functional',
-                              model_controller_class_path,
-                              "#{model_controller_file_name}_controller_test.rb")
-        m.template 'test/unit_test.rb',
-                    File.join('test/unit',
-                              class_path,
-                              "#{file_name}_test.rb")
-        if options[:include_activation]
-          m.template 'test/mailer_test.rb', File.join('test/unit', class_path, "#{file_name}_mailer_test.rb")
+        # copied straight across
+        %w[ authentication  authentication/by_cookie_token    authentication/by_password
+            access_control  access_control/approve_all_users  access_control/login_required
+          ].each do |f|
+          template_spec m, 'lib', f, nil, f
         end
-        m.template 'spec/fixtures/users.yml',
-                    File.join('test/fixtures',
-                              class_path,
-                              "#{table_name}.yml")
+
+        m.directory                                 File.join('spec/fixtures',   class_path)
+        m.template  "spec/fixtures/users.yml",      File.join('spec/fixtures',   class_path, "#{table_name}.yml")
+        m.directory 'stories'
+        m.template  'rest_auth_stories.rb',         File.join('stories',         class_path, 'rest_auth_stories.rb')
       end
 
-      m.template 'helper.rb',
-                  File.join('app/helpers',
-                            controller_class_path,
-                            "#{controller_file_name}_helper.rb")
-
-      m.template 'model_helper.rb',
-                  File.join('app/helpers',
-                            model_controller_class_path,
-                            "#{model_controller_file_name}_helper.rb")
-
-
-      # Controller templates
-      m.template 'login.html.erb',  File.join('app/views', controller_class_path, controller_file_name, "new.html.erb")
-      m.template 'signup.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "new.html.erb")
-      m.template '_model_partial.html.erb', File.join('app/views', model_controller_class_path, model_controller_file_name, "_#{file_name}_bar.html.erb")
-
-      if options[:include_activation]
-        # Mailer templates
-        %w( activation signup_notification ).each do |action|
-          m.template "#{action}.html.erb",
-                     File.join('app/views', "#{file_name}_mailer", "#{action}.html.erb")
-        end
+      if options[:tests]
+        m.directory File.join('test/functional',   model_controller_class_path)
+        m.directory File.join('test/unit',         class_path)
+        m.directory File.join('test/fixtures',     class_path)
+        m.template 'test/functional_test.rb',       File.join('test/functional',                              "sessions_controller_test.rb")
+        m.template 'test/model_functional_test.rb', File.join('test/functional', model_controller_class_path, "#{model_controller_file_name}_controller_test.rb")
+        m.template 'test/unit_test.rb',             File.join('test/unit',       class_path,                  "#{model_name}_test.rb")
+        m.template 'spec/fixtures/users.yml',       File.join('test/fixtures',                                "#{table_name}.yml")
       end
+
+      # Support
+      m.directory File.dirname(site_keys_file)
+      m.template 'site_keys.rb', site_keys_file
+      unless options[:skip_routes]
+        # Note that this fails for nested classes -- you're on your own with setting up the routes.
+        m.route_resource  'session'
+        m.route_resources model_controller_plural_name
+        m.route_name('signup',   '/signup',   {:controller => model_controller_plural_name, :action => 'new'})
+        m.route_name('register', '/register', {:controller => model_controller_plural_name, :action => 'create'})
+        m.route_name('login',    '/login',    {:controller => 'sessions', :action => 'new'})
+        m.route_name('logout',   '/logout',   {:controller => 'sessions', :action => 'destroy'})
+      end
+
+      m.readme 'final_install_tasks.txt'
 
       unless options[:skip_migration]
         m.migration_template 'migration.rb', 'db/migrate', :assigns => {
           :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
-      end
-      unless options[:skip_routes]
-        # Note that this fails for nested classes -- you're on your own with setting up the routes.
-        m.route_resource  controller_singular_name
-        m.route_resources model_controller_plural_name
-        m.route_name('signup',   '/signup',   {:controller => model_controller_plural_name, :action => 'new'})
-        m.route_name('register', '/register', {:controller => model_controller_plural_name, :action => 'create'})
-        m.route_name('login',    '/login',    {:controller => controller_controller_name, :action => 'new'})
-        m.route_name('logout',   '/logout',   {:controller => controller_controller_name, :action => 'destroy'})
       end
     end
 
@@ -260,58 +169,9 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     action = File.basename($0) # grok the action from './script/generate' or whatever
     case action
     when "generate"
-      puts "Ready to generate."
-      puts ("-" * 70)
-      puts "Once finished, don't forget to:"
-      puts
-      if options[:include_activation]
-        puts "- Add an observer to config/environment.rb"
-        puts "    config.active_record.observers = :#{file_name}_observer"
-      end
-      if options[:stateful]
-        puts "- Install the acts_as_state_machine plugin:"
-        puts "    svn export http://elitists.textdriven.com/svn/plugins/acts_as_state_machine/trunk vendor/plugins/acts_as_state_machine"
-      end
-      puts "- Add routes to these resources. In config/routes.rb, insert routes like:"
-      puts %(    map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
-      puts %(    map.login  '/login',  :controller => '#{controller_file_name}', :action => 'new')
-      puts %(    map.logout '/logout', :controller => '#{controller_file_name}', :action => 'destroy')
-      if options[:include_activation]
-        puts %(    map.activate '/activate/:activation_code', :controller => '#{model_controller_file_name}', :action => 'activate', :activation_code => nil)
-      end
-      if options[:stateful]
-        puts  "  and modify the map.resources :#{model_controller_file_name} line to include these actions:"
-        puts  "    map.resources :#{model_controller_file_name}, :member => { :suspend => :put, :unsuspend => :put, :purge => :delete }"
-      end
-      puts
-      puts ("-" * 70)
-      puts
-      if $rest_auth_site_key_from_generator.blank?
-        puts "You've set a nil site key. This preserves existing users' passwords,"
-        puts "but allows dictionary attacks in the unlikely event your database is"
-        puts "compromised and your site code is not.  See the README for more."
-      elsif $rest_auth_keys_are_new
-        puts "We've create a new site key in #{site_keys_file}.  If you have existing"
-        puts "user accounts their passwords will no longer work (see README). As always,"
-        puts "keep this file safe but don't post it in public."
-      else
-        puts "We've reused the existing site key in #{site_keys_file}.  As always,"
-        puts "keep this file safe but don't post it in public."
-      end
-      puts
-      puts ("-" * 70)
+      puts_install_msg unless options[:quiet]
     when "destroy"
-      puts
-      puts ("-" * 70)
-      puts
-      puts "Thanks for using restful_authentication"
-      puts
-      puts "Don't forget to comment out the observer line in environment.rb"
-      puts "  (This was optional so it may not even be there)"
-      puts "  # config.active_record.observers = :#{file_name}_observer"
-      puts
-      puts ("-" * 70)
-      puts
+      puts_destroy_msg
     else
       puts "Didn't understand the action '#{action}' -- you might have missed the 'after running me' instructions."
     end
@@ -371,31 +231,70 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     File.join("config", "initializers", "site_keys.rb")
   end
 
-protected
+  protected
   # Override with your own usage banner.
   def banner
-    "Usage: #{$0} authenticated ModelName [ControllerName]"
+    "Usage: #{$0} authenticated User"
   end
-
   def add_options!(opt)
     opt.separator ''
     opt.separator 'Options:'
-    opt.on("--skip-migration",
-      "Don't generate a migration file for this model")           { |v| options[:skip_migration] = v }
-    opt.on("--include-activation",
-      "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
-    opt.on("--stateful",
-      "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
+    opt.on("--tests",
+      "Force test generation (else skipped if rspecs generated)") { |v| options[:tests] = true }
     opt.on("--rspec",
       "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
     opt.on("--no-rspec",
-      "Force test (not RSpec mode")                               { |v| options[:rspec] = false }
+      "Force no rspecs created")                                  { |v| options[:rspec] = false }
+    opt.on("--quiet",
+      "Skip the post-install notes)")                             { |v| options[:quiet] = v }
     opt.on("--skip-routes",
       "Don't generate a resource line in config/routes.rb")       { |v| options[:skip_routes] = v }
+    opt.on("--skip-migration",
+      "Don't generate a migration file for this model")           { |v| options[:skip_migration] = v }
     opt.on("--old-passwords",
       "Use the older password encryption scheme (see README)")    { |v| options[:old_passwords] = v }
     opt.on("--dump-generator-attrs",
       "(generator debug helper)")                                 { |v| options[:dump_generator_attribute_names] = v }
+  end
+  def puts_install_msg
+    puts "Ready to generate."
+    puts ("-" * 70)
+    puts "Once finished, don't forget to:"
+    puts
+    puts "- Add routes to these resources. In config/routes.rb, insert routes like:"
+    puts %(    map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
+    puts %(    map.login  '/login',  :controller => 'sessions', :action => 'new')
+    puts %(    map.logout '/logout', :controller => 'sessions', :action => 'destroy')
+    puts
+    puts ("-" * 70)
+    puts
+    if $rest_auth_site_key_from_generator.blank?
+      puts "You've set a nil site key. This preserves existing users' passwords,"
+      puts "but allows dictionary attacks in the unlikely event your database is"
+      puts "compromised and your site code is not.  See the README for more."
+    elsif $rest_auth_keys_are_new
+      puts "We've create a new site key in #{site_keys_file}.  If you have existing"
+      puts "user accounts their passwords will no longer work (see README). As always,"
+      puts "keep this file safe but don't post it in public."
+    else
+      puts "We've reused the existing site key in #{site_keys_file}.  As always,"
+      puts "keep this file safe but don't post it in public."
+    end
+    puts
+    puts ("-" * 70)
+  end
+  def puts_destroy_msg
+    puts
+    puts ("-" * 70)
+    puts
+    puts "Thanks for using restful_authentication"
+    puts
+    puts "Don't forget to comment out the observer line in environment.rb"
+    puts "  (This was optional so it may not even be there)"
+    puts "  # config.active_record.observers = :#{model_name}_observer"
+    puts
+    puts ("-" * 70)
+    puts
   end
 
   def dump_generator_attribute_names
@@ -403,19 +302,6 @@ protected
       :table_name,
       :file_name,
       :class_name,
-      :controller_name,
-      :controller_class_path,
-      :controller_file_path,
-      :controller_class_nesting,
-      :controller_class_nesting_depth,
-      :controller_class_name,
-      :controller_singular_name,
-      :controller_plural_name,
-      :controller_routing_name,                 # new_session_path
-      :controller_routing_path,                 # /session/new
-      :controller_controller_name,              # sessions
-      :controller_file_name,
-      :controller_table_name, :controller_plural_name,
       :model_controller_name,
       :model_controller_class_path,
       :model_controller_file_path,
@@ -424,11 +310,13 @@ protected
       :model_controller_class_name,
       :model_controller_singular_name,
       :model_controller_plural_name,
+      :model_controller_file_name,  :model_controller_singular_name,
+      :model_controller_table_name, :model_controller_plural_name,
       :model_controller_routing_name,           # new_user_path
       :model_controller_routing_path,           # /users/new
       :model_controller_controller_name,        # users
-      :model_controller_file_name,  :model_controller_singular_name,
-      :model_controller_table_name, :model_controller_plural_name,
+      :fixtures_name,
+      :model_name
     ]
     generator_attribute_names.each do |attr|
       puts "%-40s %s" % ["#{attr}:", self.send(attr)]  # instance_variable_get("@#{attr.to_s}"
@@ -436,37 +324,3 @@ protected
 
   end
 end
-
-# ./script/generate authenticated FoonParent::Foon SporkParent::Spork -p --force --rspec --dump-generator-attrs
-# table_name:                              foon_parent_foons
-# file_name:                               foon
-# class_name:                              FoonParent::Foon
-# controller_name:                         SporkParent::Sporks
-# controller_class_path:                   spork_parent
-# controller_file_path:                    spork_parent/sporks
-# controller_class_nesting:                SporkParent
-# controller_class_nesting_depth:          1
-# controller_class_name:                   SporkParent::Sporks
-# controller_singular_name:                spork
-# controller_plural_name:                  sporks
-# controller_routing_name:                 spork
-# controller_routing_path:                 spork_parent/spork
-# controller_controller_name:              sporks
-# controller_file_name:                    sporks
-# controller_table_name:                   sporks
-# controller_plural_name:                  sporks
-# model_controller_name:                   FoonParent::Foons
-# model_controller_class_path:             foon_parent
-# model_controller_file_path:              foon_parent/foons
-# model_controller_class_nesting:          FoonParent
-# model_controller_class_nesting_depth:    1
-# model_controller_class_name:             FoonParent::Foons
-# model_controller_singular_name:          foons
-# model_controller_plural_name:            foons
-# model_controller_routing_name:           foon_parent_foons
-# model_controller_routing_path:           foon_parent/foons
-# model_controller_controller_name:        foons
-# model_controller_file_name:              foons
-# model_controller_singular_name:          foons
-# model_controller_table_name:             foons
-# model_controller_plural_name:            foons

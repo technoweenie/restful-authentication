@@ -1,0 +1,25 @@
+
+******************************************************************************
+
+You're almost finished!  Before your app and your tests will run, you must:
+
+* In app/controllers/application.rb, somewhere *inside* the class (after the
+  "class ApplicationController ..." line), add a line like
+ 
+    security_components :security_policy, :access_control,
+      :authentication => [:by_cookie_token, :by_password]
+
+* in whichever are appropriate of spec/spec_helper.rb and test/test_helper.rb,
+  add the line
+
+  include AuthenticationTestHelper
+
+* If you use stories, you have to have a root ('/') controller -- something to
+  handle the redirect to home. You need this anyway for your site to do stuff,
+  but the stories in particular will break without it.
+
+******************************************************************************
+
+Finally, please keep in mind that this is a new (beta) version of the plugin,
+and much has changed.  If you want the older version see
+  http://github.com/technoweenie/restful-authentication/tree/classic

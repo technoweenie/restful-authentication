@@ -1,19 +1,33 @@
 h2. Authorization
 
 "Best Practices for Authorization":http://www.owasp.org/index.php/Guide_to_Authorization
+
 # auth system should deny by default
+
 # Principle of least privilege (fine-grain)
+
+# Well written applications centralize access control routines, so if any bugs
+  are found, they can be fixed once and the results apply throughout the
+  application immediately.
+
 # each non-anonymous entry point have an access control check
+
 # authorization check at or near the beginning of code implementing sensitive activities
+
 # Ensure that Model code checks to ensure that the requesting user should have access to the protected resource.
-# Reauthorization for high value activities or after idle out
+
+# Reauthorization for high value activities or after idle out -- admin has to
+  re-type password before deleting a user, say
+
 # If custom code is required to perform authorization functions, consider
   fail-safe authentication and exception handling – ensure that if an exception
   is thrown, the user is logged out or at least prevented from accessing the
   protected resource or function.
-# Well written applications centralize access control routines, so if any bugs
-  are found, they can be fixed once and the results apply throughout the
-  application immediately.
+
+# In general, applications are better off if they do not contain any referrer
+  code. For the most part, using the referer field is neither desirable nor
+  useful as it so easily modified or spoofed by attackers. Little to no trust
+  can be assigned to its value, and it can be hard to sanitize and use properly.
 
 h2. Authorization in a trust context
 
@@ -29,7 +43,7 @@ h2. Patterns for Policy definition / Authorization / access control
    subj, role, right. action, resource
   RBAC, access is controlled at the system level, outside of the user's control
 * Filter based
-  User x Controller x Action x Params --
+  Subject x Controller x Action x Params --
 * Object based
   model security delegation
 * Access Control Matrix http://en.wikipedia.org/wiki/Access_Control_Matrix
@@ -47,17 +61,17 @@ Reference Monitor (SecPatt p256)
 
 = Full access with Errors (SecPatt p305)
 
-* Users should not be able to view data or perform operations for which they
+* Visitors should not be able to view data or perform operations for which they
   have no permissions.
-* Hiding an available and accessible function is inappropriate, because users
+* Hiding an available and accessible function is inappropriate, because visitors
   must be able to see what they can do.
 * The visual appeal and usability of a graphical user interface (GUI) can be de-
   graded by varying layouts depending on the (current) access rights of a
-  user. For example, blank space might appear for some users where others see
+  user. For example, blank space might appear for some visitors where others see
   options they can access, or sequence and number of menu items might differ,
   depending on the current user’s rights, and thus ‘blind’ operation of the menu
   by an expe- rienced user is no longer possible.
-* Showing currently unavailable functions can tease users to into upgrading
+* Showing currently unavailable functions can tease visitors to into upgrading
   their access rights, for example by paying for the access or buying a license
   after us- ing a demo version.
 * Trial and error are ineffective means of learning which functions are
@@ -130,7 +144,7 @@ Reference Monitor (SecPatt p256)
   "should meet the
 
 * Role supervisor:
-  * adds, defines, removes roles.  no policy -- just attaches roles to users
+  * adds, defines, removes roles.  no policy -- just attaches roles to identities
 
 * Policy
   answers "can Actor do Action to Resource"

@@ -10,10 +10,10 @@ Rails::Generator::Commands::Create.class_eval do
       end
     end
   end
-  
+
   def route_name(name, path, options = {})
     sentinel = 'ActionController::Routing::Routes.draw do |map|'
-    
+
     logger.route "map.#{name} '#{path}', :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
     unless options[:pretend]
       gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
@@ -30,7 +30,6 @@ Rails::Generator::Commands::Destroy.class_eval do
     logger.route "map.resource #{resource_list}"
     gsub_file 'config/routes.rb', /(#{look_for})/mi, ''
   end
-  
   def route_name(name, path, options = {})
     look_for =   "\n  map.#{name} '#{path}', :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
     logger.route "map.#{name} '#{path}',     :controller => '#{options[:controller]}', :action => '#{options[:action]}'"
@@ -43,7 +42,6 @@ Rails::Generator::Commands::List.class_eval do
     resource_list = resources.map { |r| r.to_sym.inspect }.join(', ')
     logger.route "map.resource #{resource_list}"
   end
-  
   def route_name(name, path, options = {})
     logger.route "map.#{name} '#{path}', :controller => '{options[:controller]}', :action => '#{options[:action]}'"
   end
