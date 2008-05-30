@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + "/lib/insert_routes.rb")
 require 'digest/sha1'
-class AuthenticationGenerator < Rails::Generator::NamedBase
+class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
                   :skip_routes    => false,
                   :old_passwords  => false,
@@ -258,14 +258,6 @@ class AuthenticationGenerator < Rails::Generator::NamedBase
   end
   def puts_install_msg
     puts "Ready to generate."
-    puts ("-" * 70)
-    puts "Once finished, don't forget to:"
-    puts
-    puts "- Add routes to these resources. In config/routes.rb, insert routes like:"
-    puts %(    map.signup '/signup', :controller => '#{model_controller_file_name}', :action => 'new')
-    puts %(    map.login  '/login',  :controller => 'sessions', :action => 'new')
-    puts %(    map.logout '/logout', :controller => 'sessions', :action => 'destroy')
-    puts
     puts ("-" * 70)
     puts
     if $rest_auth_site_key_from_generator.blank?

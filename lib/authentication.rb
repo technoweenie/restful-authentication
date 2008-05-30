@@ -55,7 +55,7 @@ protected
 
   # Called from #current_user.  First attempt to login by the user id stored in the browser-session.
   def try_login_from_session
-    self.current_user = User.find_by_id(session[:user_id]) if session[:user_id] # FIXME -- depends on User model named User
+    self.current_user = User.find_by_id(session[:user_id]) if session[:user_id]
   end
 
   def handle_signin_error error

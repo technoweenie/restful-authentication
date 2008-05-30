@@ -1,31 +1,8 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe AccessControl do
-  #   before(:each) do
-  #     @user = mock_user
-  #     # set up module rig
-  #     @klass = Class.new do
-  #       stub!(:rescue_from)
-  #       include AccessControl
-  #     end
-  #     @mockcontroller = @klass.new
-  #     # Fake a controller
-  #     # @mockcontroller.stub!(:session).and_return( {} )
-  #     # @mockcontroller.stub!(:cookies).and_return( {} )
-  #     # @mockcontroller.stub!(:reset_session)
-  #     # @mockcontroller.stub!(:authenticate_with_http_basic).and_return nil  # FIXME -- session controller not testing xml logins
-  #   end
-  #
-  #
-  #   describe "before filters" do
-  #     before(:each) do
-  #       #
-  #       # A test controller with and without access controls
-  #       #
-  #       @klass.class_eval do
-  #
-  #
-
+  # before(:each) do
+  # end
   # describe 'simple authorization' do
   #   it "should not authorize logged-out" do
   #     controller.stub!(:current_user).and_return(false)

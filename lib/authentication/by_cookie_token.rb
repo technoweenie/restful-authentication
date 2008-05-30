@@ -3,7 +3,7 @@ module Authentication::ByCookieToken
   # Called from #current_user.  Finaly, attempt to login by an expiring token in the cookie.
   # for the paranoid: we _should_ be storing user_token = hash(cookie_token, request IP)
   def login_from_cookie
-    user = cookies[:auth_token] && User.find_by_remember_token(cookies[:auth_token]) # FIXME -- depends on User class being named User
+    user = cookies[:auth_token] && User.find_by_remember_token(cookies[:auth_token])
     if user && user.remember_token? && become_logged_in_as!(user)
       handle_remember_cookie! false # freshen cookie token (keeping date)
       @current_user
