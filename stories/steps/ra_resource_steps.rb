@@ -1,15 +1,14 @@
-# The flexible code for resource testing came out of code from Ben Mabey
+# Please give dap to Ben Mabey for this approach to stories testing
 # http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
 steps_for(:ra_resource) do
   #
   # Construct resources
   #
-  
+
   #
   # Build a resource as described, store it as an @instance variable. Ex:
-  #   "Given a <%= file_name %> with login: 'mojojojo'" 
-  # produces a <%= class_name %> instance stored in @<%= file_name %> with 'mojojojo' as its login
-  # attribute.
+  #   "Given a spork with teeth: 'pointy'"
+  # gives a Spork instance named @spork with 'pointy' as its teeth attribute.
   #
   Given "a $resource instance with $attributes" do |resource, attributes|
     klass, instance, attributes = parse_resource_args resource, attributes
@@ -18,11 +17,11 @@ steps_for(:ra_resource) do
     find_resource(resource, attributes).should_not be_nil
     keep_instance! resource, instance
   end
-  
+
   #
   # Stuff attributes into a preexisting @resource
-  #   "And the <%= file_name %> has thac0: 3"
-  # takes the earlier-defined @<%= file_name %> instance and sets its thac0 to '3'.
+  #   "And the user has thac0: 3"
+  # takes the earlier-defined @user instance and sets its thac0 to '3'.
   #
   Given "the $resource has $attributes" do |resource, attributes|
     klass, instance, attributes = parse_resource_args resource, attributes
@@ -31,9 +30,9 @@ steps_for(:ra_resource) do
     end
     instance.save!
     find_resource(resource, attributes).should_not be_nil
-    keep_instance! resource, instance 
+    keep_instance! resource, instance
   end
-  
+
   #
   # Destroy all for this resource
   #
@@ -48,7 +47,7 @@ steps_for(:ra_resource) do
   #
   # Then's for resources
   #
-  
+
   # Resource like this DOES exist
   Then %r{an? $resource with $attributes should exist} do |resource, attributes|
     instance = find_resource resource, attributes
@@ -90,12 +89,12 @@ steps_for(:ra_resource) do
   #
   # Bank each of the @resource's listed attributes for later.
   #
-  Given "we don't remember anything about the past" do 
+  Given "we don't remember anything about the past" do
     memorize_forget_all!
   end
 
   #
-  # Compare @resource.attr to its earlier-memorized value. 
+  # Compare @resource.attr to its earlier-memorized value.
   # Specify ' using method_name' (abs, to_s, &c) to coerce before comparing.
   # For important and mysterious reasons, timestamps want to_i or to_s.
   #
@@ -119,17 +118,17 @@ steps_for(:ra_resource) do
       response.should have_text(/#{actual_resource.send(attribute.strip.gsub(" ","_"))}/)
     end
   end
-  
+
 end
 
 #
 # Turn a resource name and a to_hash_from_story string like
 #   "attr: 'value', attr2: 'value2', ... , and attrN: 'valueN'"
-# into 
+# into
 #   * klass      -- the class matching that Resource
 #   * instance   -- the possibly-preexisting local instance value @resource
 #   * attributes -- a hash matching the given attribute-list string
-# 
+#
 def parse_resource_args resource, attributes=nil
   instance   = instantize resource
   klass      = resource.classify.constantize
@@ -138,7 +137,7 @@ def parse_resource_args resource, attributes=nil
 end
 
 #
-# Given a class name 'resource' and a hash of conditsion, find a model 
+# Given a class name 'resource' and a hash of conditsion, find a model
 #
 def find_resource resource, conditions
   klass, instance = parse_resource_args resource
@@ -169,10 +168,10 @@ end
 # Keep the object around in a local instance variable @resource.
 #
 # So, for instance,
-#   klass, instance = parse_resource_args '<%= file_name %>'
+#   klass, instance = parse_resource_args 'spork'
 #   instance = klass.new({login => 'me', password => 'monkey', ...})
 #   keep_instance! resource, instance
-# keeps the just-constructed <%= class_name %> model in the @<%= file_name %> instance variable.
+# keeps the just-constructed Spork model in the @spork instance variable.
 #
 def keep_instance! resource, object
   instance_variable_set("@#{resource}", object)
