@@ -26,6 +26,9 @@ protected
   # If you go from a logged-out state to a logged-in state (basically, all
   # logins except by session variable), it should pass through here.
   #
+  # become_logged_in_as! will raise an exception if the user cannot log in.
+  # if it returns, the user has successfully logged in.
+  #
   # Ensure you "Fail Closed" -- that **you allot no privileged resources**
   # (assign to current_user, set a cookie, arm nukes, etc.) until this succeeds.
   # Either wait until success to allot resources (best) or else rescue the
@@ -40,8 +43,21 @@ protected
     # reset_session
     raise AuthenticationError unless user
     demand_authorization! :for => user, :to => :login
-    session[:user_id] = user.id
-    @current_user     = user
+    self.current_user = user
+  end
+
+  #
+  # try to log in as the user.
+  # if they're not authorized, don't do anything (and return false)
+  # if they are authorized, return user: successfully logged in
+  #
+  def become_logged_in_as user
+    raise AuthenticationError unless user
+    if authorized? :for => user, :to => :login
+      self.current_user = user
+    else
+      self.current_user = false
+    end
   end
 
   #
@@ -54,6 +70,7 @@ protected
   end
 
   # Called from #current_user.  First attempt to login by the user id stored in the browser-session.
+  # does NOT call become_logged_in_as
   def try_login_from_session
     self.current_user = User.find_by_id(session[:user_id]) if session[:user_id]
   end

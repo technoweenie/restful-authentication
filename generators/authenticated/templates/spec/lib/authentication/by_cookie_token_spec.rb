@@ -2,30 +2,31 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Authentication do
   before(:each) do
-    @user = mock_user
+    @<%= model_name %> = mock_<%= model_name %>
     @mock_controller, @mock_controller_class = mock_authentication_controller
     @mock_controller_class.send(:include, Authentication::ByCookieToken)
     @mock_controller.stub!(:cookies).and_return( {} )
+    stub_auth!(@mock_controller, true) # <%= model_name %> is authorized for anything; call stub_auth! again to override.
   end
 
   # Shared
   describe "it refreshes token", :shared => true do
-    it 'refreshes user token'        do  @user.should_receive(:refresh_token).at_least(:once) end
-    it 'does not create user token'  do  @user.should_not_receive(:remember_me) end
-    it 'does not kill user token'    do  @user.should_not_receive(:forget_me) end
-    it 'sends the token'             do  @mock_controller.should_receive(:send_remember_cookie!).at_least(:once) end
+    it "refreshes visitor's token"        do  @user.should_receive(:refresh_token).at_least(:once) end
+    it "does not create visitor's token"  do  @user.should_not_receive(:remember_me) end
+    it "does not kill visitor's token"    do  @user.should_not_receive(:forget_me) end
+    it "sends the token"                  do  @mock_controller.should_receive(:send_remember_cookie!).at_least(:once) end
   end
   describe "it creates token", :shared => true do
-    it 'does not refresh user token' do  @user.should_not_receive(:refresh_token)end
-    it 'creates new user token'      do  @user.should_receive(:remember_me) end
-    it 'does not kill user token'    do  @user.should_not_receive(:forget_me)  end
-    it 'sends the token'             do  @mock_controller.should_receive(:send_remember_cookie!).at_least(:once) end
+    it "does not refresh visitor's token" do  @user.should_not_receive(:refresh_token)end
+    it "creates new visitor's token"      do  @user.should_receive(:remember_me) end
+    it "does not kill visitor's token"    do  @user.should_not_receive(:forget_me)  end
+    it "sends the token"                  do  @mock_controller.should_receive(:send_remember_cookie!).at_least(:once) end
   end
   describe "it destroys token", :shared => true do
-    it 'does not refresh user token' do  @user.should_not_receive(:refresh_token)end
-    it 'does not create user token'  do  @user.should_not_receive(:remember_me) end
-    it 'kills user token'            do  @user.should_receive(:forget_me).at_least(:once)  end
-    it 'sends the token'             do  @mock_controller.should_receive(:send_remember_cookie!).at_least(:once) end
+    it "does not refresh visitor's token" do  @user.should_not_receive(:refresh_token)end
+    it "does not create visitor's token"  do  @user.should_not_receive(:remember_me) end
+    it "kills visitor's token"            do  @user.should_receive(:forget_me).at_least(:once)  end
+    it "sends the token"                  do  @mock_controller.should_receive(:send_remember_cookie!).at_least(:once) end
   end
 
   #
@@ -50,6 +51,7 @@ describe Authentication do
         set_remember_cookie 'valid_token'
         @user.stub!(:remember_token?).and_return(true)
       end
+      it_should_behave_like "it refreshes token"
       it 'tries session login first'   do
         @mock_controller.should_receive(:try_login_from_session).and_return(@user)
         @mock_controller.should_not_receive(:login_from_cookie)
@@ -58,11 +60,23 @@ describe Authentication do
         @mock_controller.should_receive(:try_login_from_session).and_return(nil)
         @mock_controller.should_receive(:login_from_cookie ).and_return(@user)
       end
-      it 'checks user token'     do  @user.should_receive(:remember_token?).at_least(:once).and_return(true) end
-      it 'checks cookie token'   do  @mock_controller.should_receive(:handle_remember_cookie!).with(false) end
-      # it_should_behave_like "it refreshes token"
+      it "checks visitor's token"   do  @user.should_receive(:remember_token?).at_least(:once).and_return(true) end
+      it "checks cookie token"      do  @mock_controller.should_receive(:handle_remember_cookie!).with(false) end
+      it "checks for authorization" do
+        @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @user, :to => :login, :on => nil, :extra => nil}).and_return(true)
+      end
       after(:each) do
         @mock_controller.send(:current_user).should == @user
+      end
+    end
+    describe "when not authorized to log in" do
+      before(:each) do
+        set_remember_cookie 'valid_token'
+        @user.stub!(:remember_token?).and_return(true)
+      end
+      it "fails quietly on no authorization" do
+        stub_auth!(@mock_controller, false)
+        @mock_controller.send(:current_user).should == false
       end
     end
 
@@ -137,8 +151,5 @@ describe Authentication do
       @mock_controller.logout_keeping_session!
     end
   end
-
-  # @user.should_not_receive(:refresh_token)
-      # @user.should_not_receive(:remember_me)
 
 end

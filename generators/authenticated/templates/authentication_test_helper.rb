@@ -61,9 +61,12 @@ module AuthenticationTestHelper
     mock_controller.stub!(:session).and_return( {} )
     mock_controller.stub!(:reset_session)
     [mock_controller, mock_controller_class]
-  end<% end %>
+  end
+
+  def stub_auth!(ctrlr, val)
+    ctrlr.stub!(:get_authorization).and_return(val)
+  end
+  <% end %>
 
 end
 
-# Make the helper methods visible for testing
-ApplicationController.send(:public, :logged_in?, :current_user, :authorized?, :demand_authorization!)

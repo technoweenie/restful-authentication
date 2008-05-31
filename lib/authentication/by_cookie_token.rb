@@ -4,7 +4,7 @@ module Authentication::ByCookieToken
   # for the paranoid: we _should_ be storing user_token = hash(cookie_token, request IP)
   def login_from_cookie
     user = cookies[:auth_token] && User.find_by_remember_token(cookies[:auth_token])
-    if user && user.remember_token? && become_logged_in_as!(user)
+    if user && user.remember_token? && become_logged_in_as(user)
       handle_remember_cookie! false # freshen cookie token (keeping date)
       @current_user
     end

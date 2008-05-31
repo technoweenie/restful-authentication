@@ -4,6 +4,7 @@
 # and use get_authorization to route to it
 #
 module SecurityPolicy
+protected
   #
   # get_authorization(req)
   #   Decides if a request should be allowed or denied
@@ -26,6 +27,12 @@ module SecurityPolicy
   #   # allow any <%= model_name %> unless it's that guy bob. bob's a jerk.
   #   def get_authorization req
   #     req[:for].is_a(<%= class_name %>) && (req[:for].login != "bob")
+  #   end
+  #
+  #   # only active <%= model_name.pluralize %> can do things.
+  #   def get_authorization req
+  #     <%= model_name %> = req[:for]
+  #     <%= model_name %>.is_a?(<%= class_name %>) && <%= model_name %>.has_role?(:active)
   #   end
   #
   def get_authorization req

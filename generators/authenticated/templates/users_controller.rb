@@ -10,11 +10,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
     @<%= model_name %> = <%= class_name %>.new(params[:<%= model_name %>])
     success = @<%= model_name %> && @<%= model_name %>.save
     if success && @<%= model_name %>.errors.empty?
-      if authorized? :for => @<%= model_name %>, :to => :login
-        # only auto-login if we expect it to succeed
-        begin  become_logged_in_as! @<%= model_name %>
-        rescue SecurityError => error; logout_keeping_session! end
-      end
+      become_logged_in_as @<%= model_name %> # logs in if authorized, does nothing if not
       redirect_back_or_default('/')
       flash[:notice] = "Thanks for signing up!"
     else

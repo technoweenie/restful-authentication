@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_dept
 
 describe <%= model_controller_class_name %>Controller do
   before(:each) do
-    @user = mock_user new_user_params
+    @user = mock_<%= model_name %> new_<%= model_name %>_params
     @user.stub!(:new_record?).and_return(false)
     <%= class_name %>.stub!(:new).and_return(@user)
   end
@@ -31,7 +31,7 @@ describe <%= model_controller_class_name %>Controller do
     describe "successfully" do
       before(:each) do
         @user.stub!(:save).and_return(@user)
-        controller.stub!(:authorized?).with({:for => @user, :to => :login}).and_return(true)
+        stub_auth!(controller, true)
       end
       it "ensures I'm logged out"                do controller.should_receive(:logout_keeping_session!); do_signup end
       it "constructs a new user"                 do <%= class_name %>.should_receive(:new).with(default_signup_options).and_return(@user); do_signup; end
@@ -39,14 +39,10 @@ describe <%= model_controller_class_name %>Controller do
       it 'redirects to the home page'            do do_signup; response.should redirect_to('/')   end
       it "welcomes me nicely"                    do do_signup; response.flash[:notice].should =~ /Thank.*sign.*up/i   end
       # auto login if authorized to do so
-      it "checks if I can log in"                do controller.should_receive(:authorized?).with({:for => @user, :to => :login}).and_return(true);  do_signup;   end
-      it "checks if I can log in"                do controller.should_receive(:demand_authorization!).with({:for => @user, :to => :login}).and_return(true);  do_signup;   end
-      it "logs me in "                           do controller.should_receive(:become_logged_in_as!).and_return(true);  do_signup;   end
-      # fail gracefully or correctly on can't auto-login
-      it "doesn't auto-login if not authorized" do controller.should_receive(:authorized?).and_return(false);        controller.should_not_receive(:become_logged_in_as!); do_signup; end
-      it "catches can't-auto-log-in error"       do controller.stub!(:become_logged_in_as!).and_raise(SecurityError); lambda{ do_signup }.should_not raise_error end
-      it "kills privileges on login error"       do controller.stub!(:become_logged_in_as!).and_raise(SecurityError); controller.should_receive(:logout_keeping_session!).twice; do_signup; end
-      it "doesn't catch other errors"            do controller.stub!(:become_logged_in_as!).and_raise("frobnozz");    lambda{ do_signup }.should     raise_error("frobnozz") end
+      it "logs me in"                            do controller.should_receive(:become_logged_in_as).with(@user).and_return(true);  do_signup;   end
+      it "only logs me in if authorized"         do controller.should_receive(:get_authorization).with({:for => @user, :to => :login,:on=>nil,:extra=>nil}).and_return(true);  do_signup; end
+      it "doesn't fail if not authorized"        do stub_auth!(controller, false); lambda{ do_signup }.should_not raise_error end
+      it "does fail if other errors"             do controller.stub!(:get_authorization).and_raise("frobnozz");    lambda{ do_signup }.should raise_error("frobnozz") end
     end
 
     #

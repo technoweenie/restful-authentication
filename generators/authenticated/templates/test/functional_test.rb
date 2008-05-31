@@ -42,7 +42,6 @@ class SessionsControllerTest < Test::Unit::TestCase
   def test_should_not_remember_me
     @request.cookies["auth_token"] = nil
     post :create, :login => 'quentin', :password => 'monkey', :remember_me => "0"
-    puts @response.cookies["auth_token"]
     assert @response.cookies["auth_token"].blank?
   end
 

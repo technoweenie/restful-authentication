@@ -1,0 +1,32 @@
+
+
+app/models
+  user.rb
+  user/
+    email_validation_mailer		User::EmailValidationMailer
+    email_validation_observer
+
+app/controllers
+  users_controller.rb
+  users_controller/
+    email_validation_controller.rb
+
+app/views
+  users/
+    email_validation_mailer
+      activation.html.erb
+      signup_notification.html.erb
+
+lib/email_validation
+
+
+
+
+'if your email is validated, you are active"
+
+
+
+"only active users can log in"
+
+"users are not active if their email is not validated"
+

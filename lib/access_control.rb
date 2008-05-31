@@ -42,6 +42,26 @@ protected
   end
 
   #
+  # Best for use with before_filter
+  #
+  # Fills in request from controller action params:
+  #   :for => current_user, :to => action, :on => self.class, :extras => params
+  #
+  # If user is not authorized, raises an AccessDenied exception; see
+  # handle_access_denied, below.
+  #
+  def authorization_filter!
+    # this isn't a very good guess.  Can we do better?
+    resource_guess = self.class
+    decision = get_authorization_with_args :for => current_user,
+      :to => params[:action],
+      :on => resource_guess,
+      :extras => params
+    raise(decision||AccessDenied) if is_denial?(decision)
+    decision
+  end
+
+  #
   # Plumbing for Authorization / Policy
   #
 
@@ -58,7 +78,7 @@ protected
     end
     # request on behalf of current user if none specified
     # (note that an explicit :for => nil or false is left untouched)
-    req[:for] = self.current_user unless req.include? :for
+    req[:for]    = current_user unless req.include? :for
     return req
   end
 

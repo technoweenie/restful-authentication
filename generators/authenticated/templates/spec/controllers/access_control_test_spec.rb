@@ -9,7 +9,7 @@ class AccessControlTestController < ActionController::Base
   security_components :security_policy, :authentication => [:by_cookie_token, :by_password],
     :access_control => :login_required
   before_filter :login_required,        :only => :login_is_required
-  before_filter :demand_authorization!, :only => :should_demand_authorization
+  before_filter :authorization_filter!, :only => :should_demand_authorization
   def login_is_required
     handle_request "login_is_required"
   end
@@ -27,7 +27,7 @@ class AccessControlTestController < ActionController::Base
       format.json do render :json => @foo, :status => :ok  end
     end
   end
-  public :logged_in?, :authorized?, :logout_keeping_session!
+  public :logged_in?, :logout_keeping_session!
 end
 
 #
@@ -46,9 +46,9 @@ REQUEST_OUTCOMES = [
 
 # formats
 ACCESS_CONTROL_FORMATS = [
-  ['',     /success/],
-  ['xml',  %r!<success>xml</success>!],
-  ['json', %r!"success": "json"!],
+  ['',     'success'],
+  ['xml',  '<success>xml</success>'],
+  ['json', '"success": "json"'],
 ]
 
 describe AccessControlTestController do
@@ -65,7 +65,7 @@ describe AccessControlTestController do
   # Outcome #1: Success
   describe "successful request", :shared => true do
     it "succeeds" do
-      response.should have_text( @success_text )
+      response.should have_text( /#{@success_text}/ )
       response.should have_text( /#{@page_request}/ )
       response.code.to_s.should == '200'
     end
@@ -82,7 +82,7 @@ describe AccessControlTestController do
   ACCESS_CONTROL_FORMATS.each do |format, success_text|
     REQUEST_OUTCOMES.each do |login_string, page_request, expected_result|
       spec_description  = "requesting #{page_request}.#{format} "
-      spec_description += "should give #{success_text.to_s.humanize}"
+      spec_description += "should give '#{success_text}' "
       spec_description += (login_string.blank? ? 'not logged in' : "logged in as #{login_string}")
       describe spec_description do
         before do
