@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + "/lib/insert_routes.rb")
+require File.expand_path(File.dirname(__FILE__) + "/../lib/insert_routes.rb")
 require 'digest/sha1'
 class AuthenticatedGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
@@ -316,3 +316,7 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
 
   end
 end
+
+# sanitize non-private use of the word 'user'
+# grep user -ri .| ruby -pe \
+#   '$_.gsub!(/current_user|@user|session\[:user_id\]|mock_user/, ""); $_="" unless $_ =~ /^[^:]+:.*user/'

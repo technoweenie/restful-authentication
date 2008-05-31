@@ -56,7 +56,7 @@ They are out of date for this new version, but may be helpful nonetheless
 <a id="AWESOME"/> </a>
 h2. Exciting new features
 
-The system has been split up to give a clear distinction between authentication
+The system has been split up to give a clear distinction among authentication
 (who are you?), authorization (is he allowed to just take the plutonium like
 that?), policy (note to staff: no one is allowed to take plutonium) and access
 control (step away from the reactor, bubba).

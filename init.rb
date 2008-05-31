@@ -11,4 +11,3 @@ end
 # FIXME -- this is crap
 require 'pathname'
 $REST_AUTH_DIR = Pathname.new(File.dirname(__FILE__)).realpath
-puts $REST_AUTH_DIR

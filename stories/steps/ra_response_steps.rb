@@ -64,7 +64,6 @@ steps_for(:ra_response) do
   Then "$actor $token cookie should exist but not include $attrlist" do |_, token, attrlist|
     attrlist = attrlist.to_array_from_story
     cookies.include?(token).should be_true
-    puts [cookies, attrlist, token].to_yaml
     attrlist.each do |val|
       cookies[token].include?(val).should_not be_true
     end
