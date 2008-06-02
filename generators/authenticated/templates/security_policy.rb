@@ -54,9 +54,16 @@ protected
   # reconcile_privileges! lets the Policy module assign or revoke privileges
   # based on the subject's current state.
   #
-  def reconcile_privileges! occasion='', *more_info
-    logger.info "Reassigning privileges for #{self.class} id #{self.id}: #{occasion} #{more_info.to_json}"
-    # user is active if and only if email is verified.
-    # set_role!(:active, email_verified?)
+  # In order to allow it as a :before_save filter,
+  # reconcile_privileges! **DOES NOT** save the model.
+  # You have to do this yourself.
+  #
+  def reconcile_privileges! occasion=nil, *more_info
+    logger.info "Reassigning privileges for #{self.class} id #{self.id}: #{occasion} #{more_info.to_json}" if occasion
+    # :active if and only if email is verified.
+    set_role! :active,  email_verified?, :skip_save
+    # :veteran if older than 1 month
+    # set_role! :veteran, ( (Time.now - self.created_at) >= 1.months ), :skip_save
   end
+  before_save :reconcile_privileges!
 end

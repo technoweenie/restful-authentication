@@ -1,0 +1,10 @@
+Description:
+    Explain the generator
+
+Example:
+    ./script/generate email_verification User
+
+    This will create:
+        app/models/user/email_verification_mailer.rb
+        app/models/user/email_verification_observer.rb
+        app/controllers/users_controller/email_verification.rb

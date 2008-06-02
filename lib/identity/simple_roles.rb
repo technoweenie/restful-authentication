@@ -44,7 +44,7 @@ module Identity::SimpleRoles
     if should_assign
       assign_role! role, skip_save
     else
-      revoke_role! role, skip_save
+      remove_role! role, skip_save
     end
   end
 

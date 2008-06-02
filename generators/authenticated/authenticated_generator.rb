@@ -23,10 +23,6 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
   alias_method  :model_controller_file_name,  :model_controller_singular_name
   alias_method  :model_controller_table_name, :model_controller_plural_name
 
-  def dump_generator_variable_names
-
-  end
-
   def initialize(runtime_args, runtime_options = {})
     super
 
@@ -76,8 +72,6 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     template_spec m, "controllers", "#{src}_controller",         nesting_path, "#{dest}_controller"
     template_spec m, "controllers", "#{src}_controller_routing", nesting_path, "#{dest}_controller_routing"
   end
-
-
 
   def manifest
     recorded_session = record do |m|
