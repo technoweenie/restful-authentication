@@ -51,7 +51,7 @@ protected
   # make a verification code for every user created
   #
   def self.included(recipient)
-    puts "email_verification included by #{recipient}"
+    # puts "email_verification included by #{recipient}"
     recipient.before_create :make_email_verification_code
     recipient.extend ClassMethods
   end

@@ -1,5 +1,5 @@
 <h1>Sign up</h1>
-<%% @<%= model_name %>.password = @<%= model_name %>.password_confirmation = nil %>
+<%% @<%= model_name %>[:password] = @<%= model_name %>[:password_confirmation] = nil %>
 
 <%%= error_messages_for :<%= model_name %> %>
 <%% form_for :<%= model_name %>, :url => <%= model_controller_routing_name %>_path do |f| -%>

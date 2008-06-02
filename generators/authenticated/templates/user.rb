@@ -1,5 +1,7 @@
 class <%= class_name %> < ActiveRecord::Base
-  security_components :security_policy, :identity => [:password, :cookie_token, :simple_roles]
+  security_components :security_policy,
+    :trustification => [:email_verification],
+    :identity       => [:password, :cookie_token, :simple_roles,]
 
   # Validation constants are in config/initializers/rest_auth_config.rb
   validates_presence_of     :login

@@ -65,5 +65,8 @@ protected
     # :veteran if older than 1 month
     # set_role! :veteran, ( (Time.now - self.created_at) >= 1.months ), :skip_save
   end
-  before_save :reconcile_privileges!
+
+  # It's safe to set reconcile_privileges! as a before_save filter,
+  # or else be sure to call it explicitly after potential trust changes
+  # before_save :reconcile_privileges!
 end
