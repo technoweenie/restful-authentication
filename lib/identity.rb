@@ -1,18 +1,5 @@
 module Identity
 
-  #
-  # Define any user roles here -- eg :moderator or :admin.
-  #
-  # This example gives every user two roles: :user and :active, and no other.
-  #
-  # This is just a stub called by the authorization routines.  Add logic over
-  # there if you want these roles to do anything.  For more complex needs, see
-  # notes/RailsPlugins.txt for role-based security plugins
-  #
-  def has_role? role
-    [:user, :active].include? role
-  end
-
   module ModelClassMethods
     #
     # Create a secure one-way hash of the input.
@@ -32,6 +19,23 @@ module Identity
     end
   end
 
+  #
+  # Define any user roles here -- eg :moderator or :admin.
+  #
+  # This example gives every user two roles: :user and :active, and no other.
+  #
+  # This is just a stub called by the authorization routines.  Add logic over
+  # there if you want these roles to do anything.  For more complex needs, see
+  # notes/RailsPlugins.txt for role-based security plugins
+  #
+  def has_role? role
+    [:user, :active].include? role
+  end
+
+  
+  #
+  # Validations
+  #
   # restful-authentication/notes/Tradeoffs.txt has more information on how these
   # validation formats were chosen.
 

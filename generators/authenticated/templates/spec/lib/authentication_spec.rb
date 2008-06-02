@@ -44,7 +44,7 @@ describe Authentication do
       lambda{ b_l_i_a! false}.should raise_error(AuthenticationError)
     end
     it "asks for authorization" do
-      @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @<%= model_name %>, :to => :login, :on => nil, :extra => nil}).and_return(true)
+      @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @<%= model_name %>, :to => :login, :on => nil, :context => nil}).and_return(true)
       b_l_i_a! @<%= model_name %>
     end
     it "raises the given error if authorization fails" do
@@ -58,7 +58,7 @@ describe Authentication do
   describe "become_logged_in_as!" do
     def b_l_i_a_no_raise(u) @mock_controller.send(:become_logged_in_as, u) end
     it "asks for authorization" do
-      @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @<%= model_name %>, :to => :login, :on => nil, :extra => nil}).and_return(true)
+      @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @<%= model_name %>, :to => :login, :on => nil, :context => nil}).and_return(true)
       b_l_i_a_no_raise @<%= model_name %>
     end
     it "raises an AuthenticationError unless <%= model_name %>"  do

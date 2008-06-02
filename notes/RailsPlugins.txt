@@ -3,7 +3,7 @@ h1. Rails Authentication, Authorization and Access Control plugins
 h2. Authentication plugins
 
 * http://github.com/technoweenie/restful-authentication/tree/master -- the accepted standard for authentication
-* http://github.com/mrflip/restful-authentication/tree/master -- my fork of restful_authentication with more modularity, more specs and a few security tweaks
+* http://github.com/mrflip/restful-authentication/tree/master -- mrflip's fork of restful_authentication with more modularity, more specs and a few security tweaks
 * http://github.com/josh/open_id_authentication/tree/master -- OpenID authentication
 
 h2. Authorization plugins
@@ -12,66 +12,128 @@ From
 * http://agilewebdevelopment.com/plugins/tag/security
 * http://www.vaporbase.com/postings/Authorization_in_Rails
 
-* http://github.com/jbarket/restful-authorization/tree/master
+List:
 
-* http://agilewebdevelopment.com/plugins/rolerequirement
+* restful-authorization
+  http://github.com/jbarket/restful-authorization/tree/master
+
+* role_requirement
+  http://agilewebdevelopment.com/plugins/rolerequirement
   http://code.google.com/p/rolerequirement/
   http://rolerequirement.googlecode.com/svn/tags/role_requirement/
   9 votes
 
-* http://github.com/ezmobius/acl_system2/
+* ACL System 2
+  http://github.com/ezmobius/acl_system2/
   http://agilewebdevelopment.com/plugins/acl_system
   http://opensvn.csie.org/ezra/rails/plugins/dev/acl_system2/
   last touched 2006
   57 votes on AWD
   * also: http://agilewebdevelopment.com/plugins/acl_system2_ownership
 
-  bq. access_control [:new, :create, :update, :edit] => '(admin | user |
-                      moderator)', :delete => 'admin'
-      <% restrict_to "(admin | moderator) & !blacklist" do %>
-        <%= link_to "Admin & Moderator only link", :action =>'foo' %>
-      <% end %>
-
-* Authorization Recipe (from Rails Recipes #32)
-  http://www.vaporbase.com/postings/Authorization_in_Rails
-  http://opensvn.csie.org/mabs29/plugins/simple_access_control
-
-* Active ACL
-  http://phpgacl.sourceforge.net/demo/phpgacl/docs/manual.html
-  (Access-matrix driven)
-
-* http://github.com/aiwilliams/access_controlled_system
-
-* http://agilewebdevelopment.com/plugins/access
-
-* http://robzon.aenima.pl/2007/12/base-auth-is-out.html
-  http://agilewebdevelopment.com/plugins/base_auth
-  http://base-auth.googlecode.com/svn/trunk/
-  40 votes
-
-* http://agilewebdevelopment.com/plugins/authorization
+* Rails-Authorization (see below)
+  http://agilewebdevelopment.com/plugins/authorization
   http://www.writertopia.com/developers/authorization
   http://github.com/DocSavage/rails-authorization-plugin/tree/master
-  Opaque policy descriptions
   19 votes
 
-* http://github.com/shuber/access_control_list/
-  Not much there yet
+* Others:
+** http://github.com/aiwilliams/access_controlled_system
+** http://agilewebdevelopment.com/plugins/access
+** http://robzon.aenima.pl/2007/12/base-auth-is-out.html
+   http://agilewebdevelopment.com/plugins/base_auth
+   http://base-auth.googlecode.com/svn/trunk/
+   40 votes
+** Authorization Recipe (from Rails Recipes #32)
+   http://www.vaporbase.com/postings/Authorization_in_Rails
+   http://opensvn.csie.org/mabs29/plugins/simple_access_control
+** Active ACL
+   http://phpgacl.sourceforge.net/demo/phpgacl/docs/manual.html
+   (Access-matrix driven)
+** http://github.com/shuber/access_control_list/
+** https://opensvn.csie.org/traccgi/tobionrails
+   http://agilewebdevelopment.com/plugins/access_control
+   http://opensvn.csie.org/tobionrails/plugins/access_control
+   last touched 1 year ago
+** http://github.com/mdarby/restful_acl/
+** http://github.com/stonean/lockdown/tree/master
+   http://lockdown.rubyforge.org
+   http://groups.google.com/group/stonean_lockdown?hl=en
+   "Lockdown stores an array of access rights in the session"
 
-* https://opensvn.csie.org/traccgi/tobionrails
-  http://agilewebdevelopment.com/plugins/access_control
-  http://opensvn.csie.org/tobionrails/plugins/access_control
-  last touched 1 year ago
+---------------------------------------------------------------------------
+h3. rails-authorization
 
-* http://github.com/mdarby/restful_acl/
-  -- google code too --
-  Just does REST?  More of an app than a plugin.
+  authorization
+    roles are (user, role), (user, role, rsrc_type), or (user, role, rsrc_instance)
 
-* http://github.com/stonean/lockdown/tree/master
-  http://lockdown.rubyforge.org
-  http://groups.google.com/group/stonean_lockdown?hl=en
-  "Lockdown stores an array of access rights in the session"
+    has_role?
+    has_role, has_no_role
+    accepts_role?
+    accepts_role
+    accepts_no_role
 
+    # user.is_member? --> Returns true if user has any role of "member"
+    # user.is_member_of? this_workshop --> Returns true/false. Must have authorizable object after query.
+    # user.is_eligible_for [this_award] --> Gives user the role "eligible" for "this_award"
+    # user.is_moderator --> Gives user the general role "moderator" (not tied to any class or object)
+    # user.is_candidate_of_what --> Returns array of objects for which this user is a "candidate" (any type)
+    # user.is_candidate_of_what(Party) --> Returns array of objects for which this user is a "candidate" (only 'Party' type)
+    user.is_role?
+    user.is_/role_name/
+    user.is_no[t]?_role?
+    user.is_no[t]?_/role_name/
+
+    # model.has_members --> Returns array of users which have role "member" on that model
+    # model.has_members? --> Returns true/false
+    model.has_/.*/?
+    model.has_/.*/
+
+    Tables:
+      roles_users  role_id, user_id
+      roles        name, rsrc_type, rsrc_id
+
+  access control:
+    self.permit
+    permit?
+    permit
+    has_permission?
+
+---------------------------------------------------------------------------
+h3. Restful Authorization
+
+  authorization & policy
+    Largely defined in access control statements.
+    Rules are deny-only with default allow
+    Users can have /roles/ and /states/, which may be denied separately.
+
+  tables:
+    roles        name
+    roles_users  join
+
+  access control:
+    authorize_role
+    authorize_state
+    authorize_/action/  => calls action_is_authorized?
+    self.require_authorization
+      => adds before_filter :check_authorization,
+         keeps its own options hash
+    takes the standard before_filter args:
+      :only, :except, :if => proc_or_string, :unless => proc_or_string
+
+    outcome:
+      default allow, rules can only deny.
+    obligations:
+      On deny:
+        :redirect_url => "/session/new"
+        :render_url => { :file => "#{RAILS_ROOT}/public/404.html" }, :status => "404"
+        (else falls through to access_denied)
+      On success:
+        redirect_back_or_default can be called by code
+      next_authorized_url_for?(user, {:controller=>, :action=>, ...params...}, binding)
+        => acts as a rule chain, giving a (deny, redirect or render) or nil for success
+
+***************************************************************************  
 h2. Trust / Validation etc. plugins
 
 

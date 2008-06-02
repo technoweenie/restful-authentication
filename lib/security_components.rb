@@ -23,6 +23,7 @@ end
 
 def security_components(*args)
   SecurityComponents.walk_reqs(args).each do |concern|
-    include concern.to_s.classify.constantize
+    # require_dependency concern.to_s # causes double includes ??
+    include            concern.to_s.camelize.constantize
   end
 end

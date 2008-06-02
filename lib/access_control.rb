@@ -18,7 +18,7 @@ protected
   # Call with positional args (assumes current_user as the subject)
   #   authorized? action, resource, *args
   # or call with options
-  #   authorized? :for => user, :to => action, :on => resource, :extra => anything_extra
+  #   authorized? :for => user, :to => action, :on => resource, :context => any_extra_context
   #
   # Examples:
   #   authorized? :for => user, :to => :log_in_as_user # check if user is activated
@@ -45,7 +45,7 @@ protected
   # Best for use with before_filter
   #
   # Fills in request from controller action params:
-  #   :for => current_user, :to => action, :on => self.class, :extras => params
+  #   :for => current_user, :to => action, :on => self.class, :context => params
   #
   # If user is not authorized, raises an AccessDenied exception; see
   # handle_access_denied, below.
@@ -56,7 +56,7 @@ protected
     decision = get_authorization_with_args :for => current_user,
       :to => params[:action],
       :on => resource_guess,
-      :extras => params
+      :context => params
     raise(decision||AccessDenied) if is_denial?(decision)
     decision
   end
@@ -71,10 +71,11 @@ protected
   end
   def parse_access_req_args *args
     req = args.extract_options!
+    req.assert_valid_keys(:for, :to, :on, :context)
     if args
       # ordered params
-      action, resource, extra = args
-      req.reverse_merge! :to => action, :on => resource, :extra => extra
+      action, resource, context = args
+      req.reverse_merge! :to => action, :on => resource, :context => context
     end
     # request on behalf of current user if none specified
     # (note that an explicit :for => nil or false is left untouched)

@@ -1,8 +1,5 @@
 %w[
   security_components
-  authentication
-  access_control
-  identity
 ].each do |f|
   require f
 end

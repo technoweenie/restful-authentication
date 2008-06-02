@@ -67,6 +67,4 @@ module AuthenticationTestHelper
     ctrlr.stub!(:get_authorization).and_return(val)
   end
   <% end %>
-
 end
-

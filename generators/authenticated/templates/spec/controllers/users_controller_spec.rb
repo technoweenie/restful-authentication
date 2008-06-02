@@ -40,7 +40,7 @@ describe <%= model_controller_class_name %>Controller do
       it "welcomes me nicely"                    do do_signup; response.flash[:notice].should =~ /Thank.*sign.*up/i   end
       # auto login if authorized to do so
       it "logs me in"                            do controller.should_receive(:become_logged_in_as).with(@user).and_return(true);  do_signup;   end
-      it "only logs me in if authorized"         do controller.should_receive(:get_authorization).with({:for => @user, :to => :login,:on=>nil,:extra=>nil}).and_return(true);  do_signup; end
+      it "only logs me in if authorized"         do controller.should_receive(:get_authorization).with({:for => @user, :to => :login,:on=>nil,:context=>nil}).and_return(true);  do_signup; end
       it "doesn't fail if not authorized"        do stub_auth!(controller, false); lambda{ do_signup }.should_not raise_error end
       it "does fail if other errors"             do controller.stub!(:get_authorization).and_raise("frobnozz");    lambda{ do_signup }.should raise_error("frobnozz") end
     end

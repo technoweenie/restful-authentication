@@ -17,7 +17,7 @@ class SessionsController < ApplicationController
     begin
       login_by_password! params[:login], params[:password]
     rescue Exception => error
-      handle_signin_error error
+      handle_login_error error
     else # success!
       remember_me_flag = (params[:remember_me] == "1")
       handle_remember_cookie! remember_me_flag
@@ -44,6 +44,24 @@ protected
   def log_failed_signin error
     flash[:error] = "#{error} with login '#{params[:login]}'"
     logger.warn "Failed login for '#{params[:login]}' from #{request.remote_ip} at #{Time.now.utc}: #{error}"
+  end
+
+  # react to login failures
+  def handle_login_error error
+    logout_keeping_session!
+    begin
+      raise error
+    rescue AccountNotActive => error
+      log_failed_signin error
+      redirect_back_or_default('/')
+    rescue AccountNotFound, BadPassword => error
+      log_failed_signin error
+      try_again
+    rescue AuthenticationError, SecurityError => error
+      log_failed_signin error
+      redirect_back_or_default('/')
+    end
+    # general exceptions are uncaught
   end
 
 end

@@ -1,0 +1,2 @@
+module Trustification::EmailValidation
+end

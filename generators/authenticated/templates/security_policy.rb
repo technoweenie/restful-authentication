@@ -14,7 +14,7 @@ protected
   #    Use req[:for], not current_user, to make your decision
   # * :to => the requested action
   # * :on => the resource or resources request will act on
-  # * :extra => any extra information passed by the access control request
+  # * :context => any extra information passed by the access control request
   #
   # get_authorization can return
   # * nil/false will raise AccessDenied (demands) or deny access (requests)
@@ -38,5 +38,25 @@ protected
   def get_authorization req
     <%= model_name %> = req[:for]
     <%= model_name %>.is_a?(<%= class_name %>)
+  end
+end
+
+User.class_eval do
+protected
+  #
+  # Most roles/privileges are assigned explicitly: designating a user to be a
+  # moderator, granting 'push' permissions to a newly-hired programmer.
+  #
+  # Some are granted and revoked automatically, though.  Many sites don't make a
+  # user active until they've verified their email address.  A communal blog
+  # might not allow 'front-page posting' for the first month after joining.
+  #
+  # reconcile_privileges! lets the Policy module assign or revoke privileges
+  # based on the subject's current state.
+  #
+  def reconcile_privileges! occasion='', *more_info
+    logger.info "Reassigning privileges for #{self.class} id #{self.id}: #{occasion} #{more_info.to_json}"
+    # user is active if and only if email is verified.
+    # set_role!(:active, email_verified?)
   end
 end

@@ -1,9 +1,8 @@
 
-
 app/models
   user.rb
   user/
-    email_validation_mailer		User::EmailValidationMailer
+    email_validation_mailer     User::EmailValidationMailer
     email_validation_observer
 
 app/controllers
@@ -19,14 +18,58 @@ app/views
 
 lib/email_validation
 
-
-
-
 'if your email is validated, you are active"
-
-
-
 "only active users can log in"
-
 "users are not active if their email is not validated"
+:access_control => [:must_validate_email_to_log_in]
+must_validate_email_to_log_in
+  hooks have_role, answers 'no' to :active
+  => get_authorization must check user & active.
 
+
+  # def has_role?()   end
+  # def revoke_role!() end
+  # def grant_role!() end
+  # def set_role!()    end
+  # alias_method :has_role!, :grant_role!
+  # alias_method :has_no_role, revoke_role!
+  # alias_method :has_role,    grant_role!
+  # def accepts_no_role() end
+  # def accepts_role()    end
+
+
+---------------------------------------------------------------------------
+
+** need to make it work invariantly with user=nil meanin :anon role
+
+  bq. access_control [:new, :create, :update, :edit] => '(admin | user |
+                      moderator)', :delete => 'admin'
+      <% restrict_to "(admin | moderator) & !blacklist" do %>
+        <%= link_to "Admin & Moderator only link", :action =>'foo' %>
+      <% end %>
+
+---------------------------------------------------------------------------
+
+Roles:
+  "grant role"   	 	   25 700
+  "assign role"  	 	  128 000
+  "assign role" security 	  122 000
+  "revoke role" security 	    9 900
+  "revoke role"          	   14 600
+  "remove role" security 	    9 500
+  "remove role"          	   21 500
+  security deny permit   	  476 000
+  security deny allow    	2 210 000
+
+permissions     grant  / revoke / set (true|false)
+  
+roles  		assign / remove / set (true|false)
+policies	allow  / deny   / restrict (with=>Proc)
+outcomes 	allow  / deny
+obligations
+* redirect,
+* render
+* verify (re-authenticate)
+* confirm (are you sure?)
+* log
+* escalate (secondary passwd)

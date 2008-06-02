@@ -1,5 +1,74 @@
 h2. Authorization
 
+h2. Policy: rules for making authorization decisions.
+
+h3. Rules
+
+A _rule_ is a tuple specifying "(permission) for: (subjects) to (action) on
+(resource), must  (obligations) given (context)".  For example,
+  * "it is /denied/ for /users/s to /grant permissions/ on /User/s -- must /log/
+  * "it is /allowed/ for /admin/s to /destroy/ /Posts/s -- must (/give secondary password/)
+  * (allow, GLG-20s, launch, nukes, alerting NORAD, given DEFCON 5 and launch keys turned at same time)
+
+
+The broadest approach is the Access Control Matrix: give the decision
+(permission and obligations) for every combination of subject, action, and
+resource.  This obviously won't scale.
+
+One popular approach is Role Based Access Control.  A Role maps (subjects) to
+groups of (action, resource, decision).
+
+One implmentation would be:
+* each subject can have_many UserRoles
+* each resource has_one ResourceType
+* there are a small number of enumerated actions
+* a DecisionsRoles table gives an allow/deny for each (role, action, resource_type).
+For example,
+
+  * faculty {can, (create,update,submit), grants}, {can not, touch knobs, experiments}
+  * students {can not, touch knobs, experiments}, {can not, order with dept credit card, pizza}
+  * custodians {can, open, all rooms}, ...
+  * Snape is a _faculty_, Hermione is a _student_, CarlReed is a _janitor_
+ 
+A large part of the appeal is that this is so easily implemented in a database:
+rule-matching is a simple 'for all roles granted this subject, the decision for
+this action and resource_type'.  It's easy to add logic for permission and role
+assignment: if the janitor WillHunting gets admitted as a student, we just add
+that fact to the UsersRoles table; and if they build a level-5 clean room, they
+can add a higher-priority rule revoking all access to that room, even to
+custodians.
+
+There's a few ways this can become cumbersome.  Context-based decisions don't
+fit well:
+  * mogwai {can not, eat, food, if it's after midnight}
+
+
+
+* Rule matcher: find all rules matching the request.
+  This involves some interplay with the policy, especially if 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 "Best Practices for Authorization":http://www.owasp.org/index.php/Guide_to_Authorization
 
 # auth system should deny by default
