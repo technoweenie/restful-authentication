@@ -75,23 +75,6 @@ protected
     self.current_user = User.find_by_id(session[:user_id]) if session[:user_id]
   end
 
-  def handle_signin_error error
-    logout_keeping_session!
-    begin
-      raise error
-    rescue AccountNotActive => error
-      log_failed_signin error
-      redirect_back_or_default('/')
-    rescue AccountNotFound, BadPassword => error
-      log_failed_signin error
-      try_again
-    rescue AuthenticationError, SecurityError => error
-      log_failed_signin error
-      redirect_back_or_default('/')
-    end
-    # general exceptions are uncaught
-  end
-
   #
   # Logout
   #
@@ -109,6 +92,9 @@ protected
   # protection, and is only strictly necessary on login.  However, **all
   # browser-session state variables should be unset here**.
   def logout_keeping_session!
+    # We need to retrieve the session login if any so that any server-side
+    # variables -- the cookie remember_token, for instance -- can be cleared
+    try_login_from_session
     logout_chain
     session[:user_id] = nil   # keeps the browser-session but kill our variable
     @current_user = false     # not logged in, and don't do it for me

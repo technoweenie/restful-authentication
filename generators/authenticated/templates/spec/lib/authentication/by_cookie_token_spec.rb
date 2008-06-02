@@ -63,7 +63,7 @@ describe Authentication do
       it "checks visitor's token"   do  @user.should_receive(:remember_token?).at_least(:once).and_return(true) end
       it "checks cookie token"      do  @mock_controller.should_receive(:handle_remember_cookie!).with(false) end
       it "checks for authorization" do
-        @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @user, :to => :login, :on => nil, :extra => nil}).and_return(true)
+        @mock_controller.should_receive(:get_authorization).at_least(:once).with({:for => @user, :to => :login, :on => nil, :context => nil}).and_return(true)
       end
       after(:each) do
         @mock_controller.send(:current_user).should == @user
@@ -143,7 +143,9 @@ describe Authentication do
       @mock_controller.logout_keeping_session!
     end
     it 'forgets me when logged in'   do
-      @mock_controller.current_user = @user; @user.should_receive(:forget_me);
+      @mock_controller.stub!(:try_login_from_session)
+      @mock_controller.send(:current_user=, @user)
+      @user.should_receive(:forget_me);
       @mock_controller.logout_keeping_session!
     end
     it "doesn't forgets when logged out" do

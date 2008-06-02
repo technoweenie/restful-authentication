@@ -43,7 +43,7 @@ module Authentication::ByCookieToken
   end
 
   def kill_remember_cookie!
-    # Kill server-side auth cookie
+    # Kill server-side auth cookie.  
     @current_user.forget_me if @current_user
     # kill client-side auth cookie
     cookies.delete :auth_token
