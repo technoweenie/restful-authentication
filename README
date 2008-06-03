@@ -122,6 +122,8 @@ To use:
   @--skip-migration@ will skip the user migration, and @--skip-routes@ will skip
   resource generation -- both useful if you've already run this generator.
 
+* --aasm: Works the same as stateful but uses the updated aasm gem
+
 * --rspec: Generate RSpec tests and Stories in place of standard rails tests.
   This requires the
     "RSpec and Rspec-on-rails plugins":http://rspec.info/

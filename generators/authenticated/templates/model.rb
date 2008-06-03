@@ -4,9 +4,10 @@ class <%= class_name %> < ActiveRecord::Base
   include Authentication
   include Authentication::ByPassword
   include Authentication::ByCookieToken
-<% if options[:stateful] -%>
+<% if options[:aasm] -%>
+  include Authorization::AasmRoles
+<% elsif options[:stateful] -%>
   include Authorization::StatefulRoles<% end %>
-
   validates_presence_of     :login
   validates_length_of       :login,    :within => 3..40
   validates_uniqueness_of   :login,    :case_sensitive => false

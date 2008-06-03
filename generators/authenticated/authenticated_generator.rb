@@ -268,7 +268,11 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         puts "- Add an observer to config/environment.rb"
         puts "    config.active_record.observers = :#{file_name}_observer"
       end
-      if options[:stateful]
+      if options[:aasm]
+        puts "- Install the acts_as_state_machine gem:"
+        puts "    sudo gem sources -a http://gems.github.com (If you haven't already)"        
+        puts "    sudo gem install rubyist-aasm"        
+      elsif options[:stateful]
         puts "- Install the acts_as_state_machine plugin:"
         puts "    svn export http://elitists.textdriven.com/svn/plugins/acts_as_state_machine/trunk vendor/plugins/acts_as_state_machine"
       end
@@ -386,6 +390,8 @@ protected
       "Generate signup 'activation code' confirmation via email") { |v| options[:include_activation] = true }
     opt.on("--stateful",
       "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
+    opt.on("--aasm",
+      "Use (gem) aasm.  Assumes --include-activation")            { |v| options[:include_activation] = options[:stateful] = options[:aasm] = true }      
     opt.on("--rspec",
       "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
     opt.on("--no-rspec",
