@@ -45,6 +45,10 @@ class <%= class_name %> < ActiveRecord::Base
   def active?
     # the existence of an activation code means they have not activated yet
     activation_code.nil?
+  end
+  
+  def recently_activated?
+    @activated
   end<% end %>
 
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
