@@ -5,7 +5,7 @@ class <%= class_name %>Observer < ActiveRecord::Observer
 
   def after_save(<%= file_name %>)
   <% if options[:include_activation] %>
-    <%= class_name %>Mailer.deliver_activation(<%= file_name %>) if <%= file_name %>.recently_activated?
+    <%= class_name %>Mailer.deliver_activation(<%= file_name %>) if <% if options[:aasm] || options[:stateful] %> <%= file_name %>.recently_activated <% else %><%= file_name %>.activated_at<% end %>
   <% end %>
   end
 end
