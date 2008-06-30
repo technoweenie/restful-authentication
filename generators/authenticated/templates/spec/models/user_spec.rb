@@ -164,7 +164,7 @@ describe <%= class_name %> do
   end
 
   it "doesn't authenticates <%= file_name %> with bad password" do
-    <%= class_name %>.authenticate('quentin', 'monkey').should == <%= table_name %>(:quentin)
+    <%= class_name %>.authenticate('quentin', 'invalid_password').should be_nil
   end
 
  if REST_AUTH_SITE_KEY.blank? 
