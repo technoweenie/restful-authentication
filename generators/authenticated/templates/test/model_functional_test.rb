@@ -4,18 +4,12 @@ require '<%= model_controller_file_name %>_controller'
 # Re-raise errors caught by the controller.
 class <%= model_controller_class_name %>Controller; def rescue_action(e) raise e end; end
 
-class <%= model_controller_class_name %>ControllerTest < Test::Unit::TestCase
+class <%= model_controller_class_name %>ControllerTest < ActionController::TestCase
   # Be sure to include AuthenticatedTestHelper in test/test_helper.rb instead
   # Then, you can remove it from this and the units test.
   include AuthenticatedTestHelper
 
   fixtures :<%= table_name %>
-
-  def setup
-    @controller = <%= model_controller_class_name %>Controller.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
 
   def test_should_allow_signup
     assert_difference '<%= class_name %>.count' do
