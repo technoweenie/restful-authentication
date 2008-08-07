@@ -19,7 +19,7 @@ the one that required them to log in), they will get the exceedingly unpleasant
 Request Forgery error.  Imagine spending twenty minutes crafting a devastating
 critique of this week's Battlestar Galactica episode, finding you need to log in
 before posting -- but then getting a Request Forgery when you re-attempt the
-post.  Frak!  Thus, it's disabled by defauly.
+post.  Frak!  Thus, it's disabled by default.
 
 On the other hand, this does moderately reduce your defense-in-depth against a
 "Cross-Site Request Forgery":http://en.wikipedia.org/wiki/CSRF attack.  To
