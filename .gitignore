@@ -18,3 +18,4 @@ actionmailer_config_DONOTVERSION.rb
 /coverage
 /doc/app
 /doc/plugins
+/away
