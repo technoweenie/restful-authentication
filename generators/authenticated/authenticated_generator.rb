@@ -68,8 +68,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
     @model_controller_controller_name = @model_controller_plural_name
 
     load_or_initialize_site_keys()
-    
-    if options[:dump_generator_attribute_names] 
+
+    if options[:dump_generator_attribute_names]
       dump_generator_attribute_names
     end
   end
@@ -233,8 +233,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       if options[:include_activation]
         # Mailer templates
         %w( activation signup_notification ).each do |action|
-          m.template "#{action}.html.erb",
-                     File.join('app/views', "#{file_name}_mailer", "#{action}.html.erb")
+          m.template "#{action}.erb",
+                     File.join('app/views', "#{file_name}_mailer", "#{action}.erb")
         end
       end
 
@@ -270,8 +270,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
       end
       if options[:aasm]
         puts "- Install the acts_as_state_machine gem:"
-        puts "    sudo gem sources -a http://gems.github.com (If you haven't already)"        
-        puts "    sudo gem install rubyist-aasm"        
+        puts "    sudo gem sources -a http://gems.github.com (If you haven't already)"
+        puts "    sudo gem install rubyist-aasm"
       elsif options[:stateful]
         puts "- Install the acts_as_state_machine plugin:"
         puts "    svn export http://elitists.textdriven.com/svn/plugins/acts_as_state_machine/trunk vendor/plugins/acts_as_state_machine"
@@ -391,7 +391,7 @@ protected
     opt.on("--stateful",
       "Use acts_as_state_machine.  Assumes --include-activation") { |v| options[:include_activation] = options[:stateful] = true }
     opt.on("--aasm",
-      "Use (gem) aasm.  Assumes --include-activation")            { |v| options[:include_activation] = options[:stateful] = options[:aasm] = true }      
+      "Use (gem) aasm.  Assumes --include-activation")            { |v| options[:include_activation] = options[:stateful] = options[:aasm] = true }
     opt.on("--rspec",
       "Force rspec mode (checks for RAILS_ROOT/spec by default)") { |v| options[:rspec] = true }
     opt.on("--no-rspec",
