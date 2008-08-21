@@ -28,7 +28,7 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # m.directory "lib"
-      m.directory File.join('app/views', parent_model_path, 'email_verification')
+      m.directory File.join('app/views/', @parent_plural_name)
       m.directory File.join('app',  @parent_controller_path)
       m.directory File.join('app',  @parent_model_path)
       m.directory File.join('spec', @parent_controller_path)
@@ -69,7 +69,7 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
   def add_mailer_templates m
     %w[email_verified signup_notification].each do |view|
       src_file  = "#{view}.html.erb"
-      src_path  = "views/#{src_file}"
+      src_path  = "views/#{@parent_plural_name}/#{src_file}"
       dest_path = File.join('app/views', parent_plural_name, src_file)
       m.template src_path, dest_path
     end

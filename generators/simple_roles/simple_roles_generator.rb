@@ -1,4 +1,4 @@
-class EmailVerificationGenerator < Rails::Generator::NamedBase
+class SimpleRolesGenerator < Rails::Generator::NamedBase
   default_options :skip_migration => false,
                   :skip_routes    => false,
                   :old_passwords  => false,
@@ -13,9 +13,10 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
     :parent_controller_name,    # users_controller
     :parent_controller_path     # controllers/users_controller
 
+
   def initialize(runtime_args, runtime_options = {})
     super
-    @default_roles_list     = [:user, ]
+    options[:default_roles_list] = [:user, ]
     @parent_model_name      = "user"
     @parent_plural_name     = @parent_model_name.pluralize
     @parent_table_name      = @parent_model_name.pluralize
@@ -23,20 +24,20 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
     @parent_model_path      = "models/#{@parent_model_name}"
     @parent_controller_name = "#{@parent_plural_name}_controller"
     @parent_controller_path = "controllers/#{@parent_controller_name}"
-    @model_path             = "#{parent_model_name}/email_verification"
+    @model_path             = "#{parent_model_name}/simple_roles"
   end
 
   def manifest
     record do |m|
       # m.directory "lib"
-      m.directory File.join('app/views', parent_model_path, 'email_verification')
+      m.directory File.join('app/views', @parent_plural_name)
       m.directory File.join('app',  @parent_controller_path)
       m.directory File.join('app',  @parent_model_path)
       m.directory File.join('spec', @parent_controller_path)
       m.directory File.join('spec', @parent_model_path)
 
-      add_user_model_concerns m
-      add_users_controller_concerns m
+      add_users_controller_concerns %w[], m
+      add_user_model_concerns       %w[], m
       add_migration m unless options[:skip_migration]
       post_install_notes
     end
@@ -45,7 +46,7 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
   protected
   # Override with your own usage banner.
   def banner
-    "Usage: #{$0} email_verification User"
+    "Usage: #{$0} simple_roles User"
   end
   def add_options!(opt)
     opt.separator ''
@@ -70,17 +71,19 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
   # Installation methods
   #
 
-  def add_users_controller_concerns m
-    dest_file = "email_verification.rb"
-    src_file  = "email_verification_controller.rb"
-    dest_path = File.join('app', parent_controller_path, dest_file)
-    puts "templating #{src_file} to #{dest_path}"
-    m.template src_file, dest_path
+  def add_users_controller_concerns concerns, m
+    concerns.each do |concern|
+      src_file  = "simple_roles_#{concern}.rb"
+      dest_file = src_file
+      dest_path = File.join('app', parent_controller_path, dest_file)
+      puts "templating #{src_file} to #{dest_path}"
+      m.template src_file, dest_path
+    end
   end
 
-  def add_user_model_concerns m
-    %w[observer mailer].each do |concern|
-      src_file  = "email_verification_#{concern}.rb"
+  def add_user_model_concerns concerns, m
+    concerns.each do |concern|
+      src_file  = "simple_roles_#{concern}.rb"
       dest_file = src_file
       dest_path = File.join('app', parent_model_path, dest_file)
       puts "templating #{src_file} to #{dest_path}"
@@ -105,13 +108,12 @@ class EmailVerificationGenerator < Rails::Generator::NamedBase
     action = File.basename($0) # grok the action from './script/generate' or whatever
     case action
     when "generate"
-      puts "- Add an observer to config/environment.rb"
-      puts "    config.active_record.observers = :#{file_name}_observer"
+      # post-install notes go here
+      # puts ""
     end
-    puts %{ map.verify '/verify/:activation_code', :controller => '#{parent_controller_name}', :action => 'verify_email', :verification_code => nil }
   end
-
 end
+
 # def manifest
 #   record do |m|
 #     modify_or_add_user_fixtures(m)

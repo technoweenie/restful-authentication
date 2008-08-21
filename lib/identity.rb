@@ -32,7 +32,7 @@ module Identity
     [:user, :active].include? role
   end
 
-  
+
   #
   # Validations
   #
@@ -52,7 +52,7 @@ module Identity
   #
   # This is purposefully imperfect -- it's just a check for bogus input. See
   # http://www.regular-expressions.info/email.html
-  MSG_EMAIL_BAD      = "should look like an email address (you@somethingsomething.com) and include only letters, numbers and .%+- please."
+  MSG_EMAIL_BAD      = "should look like an email address (you@somethingsomething.com) and include only letters, numbers and .&nbsp;+&nbsp;-&nbsp;&#37; please."
   RE_EMAIL_NAME      = '[\w\.%\+\-]+'                          # what you actually see in practice
   RE_EMAIL_N_RFC2822 = '0-9A-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.' # technically allowed by RFC-2822
   RE_DOMAIN_HEAD     = '(?:[A-Z0-9\-]+\.)+'

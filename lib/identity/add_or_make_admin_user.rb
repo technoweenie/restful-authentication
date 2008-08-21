@@ -4,7 +4,7 @@ module Identity::AddOrMakeAdminUser
     puts "*"*70
     admin = self.find_admin || self.make_admin
     admin.assign_role! :admin
-    admin.reconcile_privileges!
+    admin.send(:reconcile_privileges!)
     puts "  added 'admin' role"
     puts "*"*70
     admin

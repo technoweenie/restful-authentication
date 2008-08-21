@@ -24,7 +24,7 @@ module Identity::SimpleRoles
   # Adds role. No error if user already has role.
   # returns updated user.roles
   def assign_role! role, skip_save=false
-    self.roles << role
+    (self.roles ||= []) << role.to_s
     self.roles.uniq!
     self.save(false) unless (skip_save==:skip_save)
     self.roles
