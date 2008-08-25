@@ -14,15 +14,15 @@ module Authentication
     RE_EMAIL_NAME   = '[\w\.%\+\-]+'                          # what you actually see in practice
     #RE_EMAIL_NAME   = '0-9A-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.' # technically allowed by RFC-2822
     RE_DOMAIN_HEAD  = '(?:[A-Z0-9\-]+\.)+'
-    RE_DOMAIN_TLD   = '(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum)'
+    RE_DOMAIN_TLD   = '(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum|edu)'
     RE_EMAIL_OK     = /\A#{RE_EMAIL_NAME}@#{RE_DOMAIN_HEAD}#{RE_DOMAIN_TLD}\z/i
     MSG_EMAIL_BAD   = "should look like an email address."
     
-    CONSTANTS_DEFINED = 'yup' # sorry for the C idiom
+    CONSTANTS_DEFINED = true # sorry for the C idiom
   end
   
-  def self.included( recipient )
-    recipient.extend( ModelClassMethods )
+  def self.included(recipient)
+    recipient.extend(ModelClassMethods)
     recipient.class_eval do
       include ModelInstanceMethods
     end
@@ -32,6 +32,7 @@ module Authentication
     def secure_digest(*args)
       Digest::SHA1.hexdigest(args.flatten.join('--'))
     end
+
     def make_token
       secure_digest(Time.now, (1..10).map{ rand.to_s })
     end 
@@ -39,5 +40,4 @@ module Authentication
   
   module ModelInstanceMethods
   end # instance methods
-
 end

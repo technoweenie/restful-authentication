@@ -1,7 +1,6 @@
 module Authorization
-
-  def self.included( recipient )
-    recipient.extend( ModelClassMethods )
+  def self.included(recipient)
+    recipient.extend(ModelClassMethods)
     recipient.class_eval do
       include ModelInstanceMethods
     end

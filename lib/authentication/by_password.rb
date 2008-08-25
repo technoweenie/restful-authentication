@@ -1,9 +1,8 @@
 module Authentication
   module ByPassword
-    
     # Stuff directives into including module
-    def self.included( recipient )
-      recipient.extend( ModelClassMethods )
+    def self.included(recipient)
+      recipient.extend(ModelClassMethods)
       recipient.class_eval do
         include ModelInstanceMethods
         

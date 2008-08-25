@@ -1,11 +1,11 @@
 module Trustification
   module EmailValidation
     unless Object.constants.include? "CONSTANTS_DEFINED"
-      CONSTANTS_DEFINED = 'yup' # sorry for the C idiom
+      CONSTANTS_DEFINED = true # sorry for the C idiom
     end
     
-    def self.included( recipient )
-      recipient.extend( ClassMethods )
+    def self.included(recipient)
+      recipient.extend(ClassMethods)
       recipient.class_eval do
         include InstanceMethods
       end

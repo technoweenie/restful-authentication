@@ -2,8 +2,8 @@
 module Authentication
   module ByCookieToken
     # Stuff directives into including module 
-    def self.included( recipient )
-      recipient.extend( ModelClassMethods )
+    def self.included(recipient)
+      recipient.extend(ModelClassMethods)
       recipient.class_eval do
         include ModelInstanceMethods
       end
@@ -12,7 +12,7 @@ module Authentication
     #
     # Class Methods
     #
-    module ModelClassMethods      
+    module ModelClassMethods
     end # class methods
 
     #
@@ -59,10 +59,7 @@ module Authentication
       end
     end # instance methods
   end
-  
 
-  #
-  #
   module ByCookieTokenController
     # Stuff directives into including module 
     def self.included( recipient )
