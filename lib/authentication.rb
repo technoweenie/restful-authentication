@@ -1,24 +1,22 @@
 module Authentication
-  unless defined? CONSTANTS_DEFINED
-    # Uncomment to suit
-    RE_LOGIN_OK     = /\A\w[\w\.\-_@]+\z/                     # ASCII, strict
-    # RE_LOGIN_OK   = /\A[[:alnum:]][[:alnum:]\.\-_@]+\z/     # Unicode, strict
-    # RE_LOGIN_OK   = /\A[^[:cntrl:]\\<>\/&]*\z/              # Unicode, permissive
-    MSG_LOGIN_BAD   = "use only letters, numbers, and .-_@ please."
+  mattr_accessor :login_regex, :bad_login_message, 
+    :name_regex, :bad_name_message,
+    :email_name_regex, :domain_head_regex, :domain_tld_regex, :email_regex, :bad_email_message
 
-    RE_NAME_OK      = /\A[^[:cntrl:]\\<>\/&]*\z/              # Unicode, permissive
-    MSG_NAME_BAD    = "avoid non-printing characters and \\&gt;&lt;&amp;/ please."
+  self.login_regex       = /\A\w[\w\.\-_@]+\z/                     # ASCII, strict
+  # self.login_regex       = /\A[[:alnum:]][[:alnum:]\.\-_@]+\z/     # Unicode, strict
+  # self.login_regex       = /\A[^[:cntrl:]\\<>\/&]*\z/              # Unicode, permissive
 
-    # This is purposefully imperfect -- it's just a check for bogus input. See
-    # http://www.regular-expressions.info/email.html
-    RE_EMAIL_NAME   = '[\w\.%\+\-]+'                          # what you actually see in practice
-    #RE_EMAIL_NAME   = '0-9A-Z!#\$%\&\'\*\+_/=\?^\-`\{|\}~\.' # technically allowed by RFC-2822
-    RE_DOMAIN_HEAD  = '(?:[A-Z0-9\-]+\.)+'
-    RE_DOMAIN_TLD   = '(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|jobs|museum)'
-    RE_EMAIL_OK     = /\A#{RE_EMAIL_NAME}@#{RE_DOMAIN_HEAD}#{RE_DOMAIN_TLD}\z/i
-    MSG_EMAIL_BAD   = "should look like an email address."
-    CONSTANTS_DEFINED = true # sorry for the C idiom
-  end
+  self.bad_login_message = "use only letters, numbers, and .-_@ please.".freeze
+
+  self.name_regex        = /\A[^[:cntrl:]\\<>\/&]*\z/              # Unicode, permissive
+  self.bad_name_message  = "avoid non-printing characters and \\&gt;&lt;&amp;/ please.".freeze
+
+  self.email_name_regex  = '[\w\.%\+\-]+'.freeze
+  self.domain_head_regex = '(?:[A-Z0-9\-]+\.)+'.freeze
+  self.domain_tld_regex  = '(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|jobs|museum)'.freeze
+  self.email_regex       = /\A#{email_name_regex}@#{domain_head_regex}#{domain_tld_regex}\z/i
+  self.bad_email_message = "should look like an email address.".freeze
 
   def self.included(recipient)
     recipient.extend(ModelClassMethods)
