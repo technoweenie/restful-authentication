@@ -28,8 +28,7 @@ class <%= model_controller_class_name %>Controller < ApplicationController
       # button. Uncomment if you understand the tradeoffs.
       # reset session
       self.current_<%= file_name %> = @<%= file_name %> # !! now logged in
-      <% end -%>
-      redirect_back_or_default('/')
+      <% end -%>redirect_back_or_default('/')
       flash[:notice] = "Thanks for signing up!  We're sending you an email with your activation code."
     else
       flash[:error]  = "We couldn't set up that account, sorry.  Please try again, or contact an admin (link is above)."
