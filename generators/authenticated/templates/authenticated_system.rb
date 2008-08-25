@@ -31,7 +31,7 @@ module AuthenticatedSystem
     #    current_<%= file_name %>.login != "bob"
     #  end
     #
-    def authorized?
+    def authorized?(action = action_name, resource = nil)
       logged_in?
     end
 
