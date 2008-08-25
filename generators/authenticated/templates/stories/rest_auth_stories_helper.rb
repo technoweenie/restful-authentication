@@ -4,7 +4,7 @@ include AuthenticatedTestHelper
 # Most of the below came out of code from Ben Mabey
 # http://www.benmabey.com/2008/02/04/rspec-plain-text-stories-webrat-chunky-bacon/
 
-# These allow exceptions to come through as opposed to being caught and hvaing non-helpful responses returned.
+# These allow exceptions to come through as opposed to being caught and having non-helpful responses returned.
 ActionController::Base.class_eval do
   def perform_action
     perform_action_without_rescue

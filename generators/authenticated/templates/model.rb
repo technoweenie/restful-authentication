@@ -37,6 +37,11 @@ class <%= class_name %> < ActiveRecord::Base
     save(false)
   end
 
+  # Returns true if the user has just been activated.
+  def recently_activated?
+    @activated
+  end
+
   def active?
     # the existence of an activation code means they have not activated yet
     activation_code.nil?

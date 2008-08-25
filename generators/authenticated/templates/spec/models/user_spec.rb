@@ -1,4 +1,4 @@
-# -*- coding: mule-utf-8 -*-
+# -*- coding: utf-8 -*-
 require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_depth) + '/../spec_helper' %>'
 
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead.
@@ -16,7 +16,7 @@ describe <%= class_name %> do
         violated "#{@<%= file_name %>.errors.full_messages.to_sentence}" if @<%= file_name %>.new_record?
       end
     end
-    
+
     it 'increments <%= class_name %>#count' do
       @creating_<%= file_name %>.should change(<%= class_name %>, :count).by(1)
     end
@@ -34,10 +34,10 @@ describe <%= class_name %> do
     end
 <% end %>  end
 
-  #              
+  #
   # Validations
   #
- 
+
   it 'requires login' do
     lambda do
       u = create_<%= file_name %>(:login => nil)
@@ -46,7 +46,7 @@ describe <%= class_name %> do
   end
 
   describe 'allows legitimate logins:' do
-    ['123', '1234567890_234567890_234567890_234567890', 
+    ['123', '1234567890_234567890_234567890_234567890',
      'hello.-_there@funnychar.com'].each do |login_str|
       it "'#{login_str}'" do
         lambda do
@@ -58,7 +58,7 @@ describe <%= class_name %> do
   end
   describe 'disallows illegitimate logins:' do
     ['12', '1234567890_234567890_234567890_234567890_', "tab\t", "newline\n",
-     "Iñtërnâtiônàlizætiøn hasn't happened to ruby 1.8 yet", 
+     "Iñtërnâtiônàlizætiøn hasn't happened to ruby 1.8 yet",
      'semicolon;', 'quote"', 'tick\'', 'backtick`', 'percent%', 'plus+', 'space '].each do |login_str|
       it "'#{login_str}'" do
         lambda do
@@ -94,7 +94,7 @@ describe <%= class_name %> do
     ['foo@bar.com', 'foo@newskool-tld.museum', 'foo@twoletter-tld.de', 'foo@nonexistant-tld.qq',
      'r@a.wk', '1234567890-234567890-234567890-234567890-234567890-234567890-234567890-234567890-234567890@gmail.com',
      'hello.-_there@funnychar.com', 'uucp%addr@gmail.com', 'hello+routing-str@gmail.com',
-     'domain@can.haz.many.sub.doma.in', 
+     'domain@can.haz.many.sub.doma.in', 'student.name@university.edu'
     ].each do |email_str|
       it "'#{email_str}'" do
         lambda do
@@ -121,7 +121,7 @@ describe <%= class_name %> do
   end
 
   describe 'allows legitimate names:' do
-    ['Andre The Giant (7\'4", 520 lb.) -- has a posse', 
+    ['Andre The Giant (7\'4", 520 lb.) -- has a posse',
      '', '1234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890_234567890',
     ].each do |name_str|
       it "'#{name_str}'" do
@@ -163,11 +163,11 @@ describe <%= class_name %> do
     <%= class_name %>.authenticate('quentin', 'monkey').should == <%= table_name %>(:quentin)
   end
 
-  it "doesn't authenticates <%= file_name %> with bad password" do
-    <%= class_name %>.authenticate('quentin', 'monkey').should == <%= table_name %>(:quentin)
+  it "doesn't authenticate <%= file_name %> with bad password" do
+    <%= class_name %>.authenticate('quentin', 'invalid_password').should be_nil
   end
 
- if REST_AUTH_SITE_KEY.blank? 
+ if REST_AUTH_SITE_KEY.blank?
    # old-school passwords
    it "authenticates a user against a hard-coded old-style password" do
      <%= class_name %>.authenticate('old_password_holder', 'test').should == <%= table_name %>(:old_password_holder)
@@ -262,18 +262,18 @@ describe <%= class_name %> do
       @<%= file_name %> = <%= table_name %>(:quentin)
       @<%= file_name %>.suspend!
     end
-    
+
     it 'reverts to active state' do
       @<%= file_name %>.unsuspend!
       @<%= file_name %>.should be_active
     end
-    
+
     it 'reverts to passive state if activation_code and activated_at are nil' do
       <%= class_name %>.update_all :activation_code => nil, :activated_at => nil
       @<%= file_name %>.reload.unsuspend!
       @<%= file_name %>.should be_passive
     end
-    
+
     it 'reverts to pending state if activation_code is set and activated_at is nil' do
       <%= class_name %>.update_all :activation_code => 'foo-bar', :activated_at => nil
       @<%= file_name %>.reload.unsuspend!
