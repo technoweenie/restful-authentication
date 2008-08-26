@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '<%= ('/..'*controller_class_nesting_depth) + '
 # Then, you can remove it from this and the units test.
 include AuthenticatedTestHelper
 include AuthenticatedSystem
+def action_name() end
 
 describe <%= controller_class_name %>Controller do
   fixtures :<%= table_name %>
