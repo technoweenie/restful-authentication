@@ -187,8 +187,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
          File.join('features', 'accounts.feature')
         m.template  'features/sessions.feature',
          File.join('features', 'sessions.feature')
-        m.template  'features/step_definitions/rest_auth_stories_helper.rb',
-         File.join('features', 'step_definitions', 'rest_auth_stories_helper.rb')
+        m.template  'features/step_definitions/rest_auth_features_helper.rb',
+         File.join('features', 'step_definitions', 'rest_auth_features_helper.rb')
         m.template  'features/step_definitions/ra_env.rb',
          File.join('features', 'step_definitions', 'ra_env.rb')
 
