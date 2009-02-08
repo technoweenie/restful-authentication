@@ -1,4 +1,4 @@
-# -*- coding: mule-utf-8 -*-
+# -*- coding: utf-8 -*-
 module Authentication
   module ByCookieToken
     # Stuff directives into including module 
