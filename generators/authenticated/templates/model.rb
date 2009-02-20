@@ -55,9 +55,9 @@ class <%= class_name %> < ActiveRecord::Base
   #
   def self.authenticate(login, password)
     return nil if login.blank? || password.blank?
-    u = <% if    options[:stateful]           %>find_in_state :first, :active, :conditions => {:login => login}<%
+    u = <% if    options[:stateful]           %>find_in_state :first, :active, :conditions => {:login => login.downcase}<%
            elsif options[:include_activation] %>find :first, :conditions => ['login = ? and activated_at IS NOT NULL', login]<%
-           else %>find_by_login(login)<% end %> # need to get the salt
+           else %>find_by_login(login.downcase)<% end %> # need to get the salt
     u && u.authenticated?(password) ? u : nil
   end
 
