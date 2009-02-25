@@ -26,7 +26,7 @@ module ToFooFromStory
   def ToFooFromStory.fix_value value
     return '' if !value
     value.strip!
-    case 
+    case
     when value =~ /^'(.*)'$/    then value = $1
     when value =~ /^"(.*)"$/    then value = $1
     when value == 'nil!'        then value = nil
@@ -35,7 +35,7 @@ module ToFooFromStory
     end
     value
   end
-  # Converts a key: value list found in the steps into a hash.  
+  # Converts a key: value list found in the steps into a hash.
   # Example:
   #   ISBN: '0967539854' and comment: 'I love this book' and Quality rating: '4'
   #   # => {"quality_rating"=>"4", "isbn"=>"0967539854", "comment"=>"I love this book"}
@@ -57,7 +57,7 @@ module ToFooFromStory
   end
 end
 class String
-  include ToFooFromStory        
+  include ToFooFromStory
 end
 
 def instantize(string)
@@ -73,9 +73,9 @@ def dump_response
   request_methods  = response.request.instance_variables - ['@session_options_with_string_keys', '@cgi', '@session']
   response_methods.map!{|attr| attr.gsub(/^@/,'')}.sort!
   request_methods.map!{ |attr| attr.gsub(/^@/,'')}.sort!
-  puts '', '*' * 75, 
+  puts '', '*' * 75,
     response.instance_values.slice(*response_methods).to_yaml,
     "*" * 75, '',
     response.request.instance_values.slice(*request_methods).to_yaml,
-    "*" * 75, ''  
+    "*" * 75, ''
 end

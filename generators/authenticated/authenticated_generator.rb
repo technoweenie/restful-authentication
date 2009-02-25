@@ -103,8 +103,8 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
         m.directory File.join('spec/models', class_path)
         m.directory File.join('spec/helpers', model_controller_class_path)
         m.directory File.join('spec/fixtures', class_path)
-        m.directory File.join('stories', model_controller_file_path)
-        m.directory File.join('stories', 'steps')
+        m.directory 'features'
+        m.directory File.join('features', 'step_definitions')
       else
         m.directory File.join('test/functional', controller_class_path)
         m.directory File.join('test/functional', model_controller_class_path)
@@ -174,23 +174,23 @@ class AuthenticatedGenerator < Rails::Generator::NamedBase
                                class_path,
                               "#{table_name}.yml")
 
-        # RSpec Stories
-        m.template  'stories/steps/ra_navigation_steps.rb',
-         File.join('stories/steps/ra_navigation_steps.rb')
-        m.template  'stories/steps/ra_response_steps.rb',
-         File.join('stories/steps/ra_response_steps.rb')
-        m.template  'stories/steps/ra_resource_steps.rb',
-         File.join('stories/steps/ra_resource_steps.rb')
-        m.template  'stories/steps/user_steps.rb',
-         File.join('stories/steps/', "#{file_name}_steps.rb")
-        m.template  'stories/users/accounts.story',
-         File.join('stories', model_controller_file_path, 'accounts.story')
-        m.template  'stories/users/sessions.story',
-         File.join('stories', model_controller_file_path, 'sessions.story')
-        m.template  'stories/rest_auth_stories_helper.rb',
-         File.join('stories', 'rest_auth_stories_helper.rb')
-        m.template  'stories/rest_auth_stories.rb',
-         File.join('stories', 'rest_auth_stories.rb')
+        # Cucumber features
+        m.template  'features/step_definitions/ra_navigation_steps.rb',
+         File.join('features/step_definitions/ra_navigation_steps.rb')
+        m.template  'features/step_definitions/ra_response_steps.rb',
+         File.join('features/step_definitions/ra_response_steps.rb')
+        m.template  'features/step_definitions/ra_resource_steps.rb',
+         File.join('features/step_definitions/ra_resource_steps.rb')
+        m.template  'features/step_definitions/user_steps.rb',
+         File.join('features/step_definitions/', "#{file_name}_steps.rb")
+        m.template  'features/accounts.feature',
+         File.join('features', 'accounts.feature')
+        m.template  'features/sessions.feature',
+         File.join('features', 'sessions.feature')
+        m.template  'features/step_definitions/rest_auth_features_helper.rb',
+         File.join('features', 'step_definitions', 'rest_auth_features_helper.rb')
+        m.template  'features/step_definitions/ra_env.rb',
+         File.join('features', 'step_definitions', 'ra_env.rb')
 
       else
         m.template 'test/functional_test.rb',
