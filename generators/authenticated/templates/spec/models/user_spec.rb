@@ -3,9 +3,10 @@ require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_dept
 
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead.
 # Then, you can remove it from this and the functional test.
-include AuthenticatedTestHelper
+
 
 describe <%= class_name %> do
+  include AuthenticatedTestHelper
   fixtures :<%= table_name %>
 
   describe 'being created' do

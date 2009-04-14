@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '<%= ('/..'*controller_class_nesting_depth) + '/../spec_helper' %>'
   # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead
 # Then, you can remove it from this and the units test.
-include AuthenticatedTestHelper
 
 #
 # A test controller with and without access controls
 #
 class AccessControlTestController < ApplicationController
+  include AuthenticatedSystem
   before_filter :login_required, :only => :login_is_required
   def login_is_required
     respond_to do |format|
@@ -42,6 +42,8 @@ ACCESS_CONTROL_IS_LOGIN_REQD = [
   :login_is_required,]
 
 describe AccessControlTestController do
+  include AuthenticatedTestHelper
+  include AuthenticatedSystem  
   fixtures        :<%= table_name %>
   before do
     # is there a better way to do this?

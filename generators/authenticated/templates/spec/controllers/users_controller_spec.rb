@@ -2,9 +2,10 @@ require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_dept
   
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead
 # Then, you can remove it from this and the units test.
-include AuthenticatedTestHelper
+
 
 describe <%= model_controller_class_name %>Controller do
+  include AuthenticatedTestHelper
   fixtures :<%= table_name %>
 
   it 'allows signup' do
@@ -117,11 +118,11 @@ describe <%= model_controller_class_name %>Controller do
     end
     
     it "should route <%= model_controller_controller_name %>'s 'update' action correctly" do
-      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'update', :id => '1').should == "/<%= model_controller_routing_path %>/1"
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'update', :id => '1').should == {:path => "/<%= model_controller_routing_path %>/1", :method => :put}
     end
     
     it "should route <%= model_controller_controller_name %>'s 'destroy' action correctly" do
-      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'destroy', :id => '1').should == "/<%= model_controller_routing_path %>/1"
+      route_for(:controller => '<%= model_controller_controller_name %>', :action => 'destroy', :id => '1').should == {:path => "/<%= model_controller_routing_path %>/1", :method => :delete}
     end
   end
   
@@ -174,20 +175,20 @@ describe <%= model_controller_class_name %>Controller do
     
     it "should route <%= model_controller_routing_name %>_path() to /<%= model_controller_routing_path %>" do
       <%= model_controller_routing_name %>_path().should == "/<%= model_controller_routing_path %>"
-      formatted_<%= model_controller_routing_name %>_path(:format => 'xml').should == "/<%= model_controller_routing_path %>.xml"
-      formatted_<%= model_controller_routing_name %>_path(:format => 'json').should == "/<%= model_controller_routing_path %>.json"
+      <%= model_controller_routing_name %>_path(:format => 'xml').should == "/<%= model_controller_routing_path %>.xml"
+      <%= model_controller_routing_name %>_path(:format => 'json').should == "/<%= model_controller_routing_path %>.json"
     end
     
     it "should route new_<%= model_controller_routing_name.singularize %>_path() to /<%= model_controller_routing_path %>/new" do
       new_<%= model_controller_routing_name.singularize %>_path().should == "/<%= model_controller_routing_path %>/new"
-      formatted_new_<%= model_controller_routing_name.singularize %>_path(:format => 'xml').should == "/<%= model_controller_routing_path %>/new.xml"
-      formatted_new_<%= model_controller_routing_name.singularize %>_path(:format => 'json').should == "/<%= model_controller_routing_path %>/new.json"
+      new_<%= model_controller_routing_name.singularize %>_path(:format => 'xml').should == "/<%= model_controller_routing_path %>/new.xml"
+      new_<%= model_controller_routing_name.singularize %>_path(:format => 'json').should == "/<%= model_controller_routing_path %>/new.json"
     end
     
     it "should route <%= model_controller_routing_name.singularize %>_(:id => '1') to /<%= model_controller_routing_path %>/1" do
       <%= model_controller_routing_name.singularize %>_path(:id => '1').should == "/<%= model_controller_routing_path %>/1"
-      formatted_<%= model_controller_routing_name.singularize %>_path(:id => '1', :format => 'xml').should == "/<%= model_controller_routing_path %>/1.xml"
-      formatted_<%= model_controller_routing_name.singularize %>_path(:id => '1', :format => 'json').should == "/<%= model_controller_routing_path %>/1.json"
+      <%= model_controller_routing_name.singularize %>_path(:id => '1', :format => 'xml').should == "/<%= model_controller_routing_path %>/1.xml"
+      <%= model_controller_routing_name.singularize %>_path(:id => '1', :format => 'json').should == "/<%= model_controller_routing_path %>/1.json"
     end
     
     it "should route edit_<%= model_controller_routing_name.singularize %>_path(:id => '1') to /<%= model_controller_routing_path %>/1/edit" do

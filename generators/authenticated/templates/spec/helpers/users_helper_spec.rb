@@ -1,9 +1,10 @@
 require File.dirname(__FILE__) + '<%= ('/..'*model_controller_class_nesting_depth) + '/../spec_helper' %>'
-include ApplicationHelper
-include <%= model_controller_class_name %>Helper
-include AuthenticatedTestHelper
 
 describe <%= model_controller_class_name %>Helper do
+  include ApplicationHelper
+  include <%= model_controller_class_name %>Helper
+  include AuthenticatedTestHelper
+
   before do
     @<%= file_name %> = mock_<%= file_name %>
   end

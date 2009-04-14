@@ -2,9 +2,10 @@ require File.dirname(__FILE__) + '<%= ('/..'*controller_class_nesting_depth) + '
 
 # Be sure to include AuthenticatedTestHelper in spec/spec_helper.rb instead
 # Then, you can remove it from this and the units test.
-include AuthenticatedTestHelper
+
 
 describe <%= controller_class_name %>Controller do
+  include AuthenticatedTestHelper
   fixtures        :<%= table_name %>
   before do 
     @<%= file_name %>  = mock_<%= file_name %>
@@ -105,7 +106,7 @@ describe <%= controller_class_name %>Controller do
       route_for(:controller => '<%= controller_controller_name %>', :action => 'new').should == "/login"
     end
     it "should route the create <%= controller_controller_name %> correctly" do
-      route_for(:controller => '<%= controller_controller_name %>', :action => 'create').should == "/<%= controller_routing_path %>"
+      route_for(:controller => '<%= controller_controller_name %>', :action => 'create').should == {:path => "/<%= controller_routing_path %>", :method => :post}
     end
     it "should route the destroy <%= controller_controller_name %> action correctly" do
       route_for(:controller => '<%= controller_controller_name %>', :action => 'destroy').should == "/logout"
