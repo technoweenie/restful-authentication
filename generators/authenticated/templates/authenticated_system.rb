@@ -122,7 +122,7 @@ module AuthenticatedSystem
     # Called from #current_<%= file_name %>.  Finaly, attempt to login by an expiring token in the cookie.
     # for the paranoid: we _should_ be storing <%= file_name %>_token = hash(cookie_token, request IP)
     def login_from_cookie
-      <%= file_name %> = cookies[:auth_token].not.blank? and <%= class_name %>.find_by_remember_token(cookies[:auth_token])
+      <%= file_name %> = !cookies[:auth_token].blank? and <%= class_name %>.find_by_remember_token(cookies[:auth_token])
       if <%= file_name %> && <%= file_name %>.remember_token?
         self.current_<%= file_name %> = <%= file_name %>
         handle_remember_cookie! false # freshen cookie token (keeping date)
