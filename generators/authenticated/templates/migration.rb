@@ -1,21 +1,21 @@
 class <%= migration_name %> < ActiveRecord::Migration
   def self.up
     create_table "<%= table_name %>", :force => true do |t|
-      t.column :login,                     :string, :limit => 40
-      t.column :name,                      :string, :limit => 100, :default => '', :null => true
-      t.column :email,                     :string, :limit => 100
-      t.column :crypted_password,          :string, :limit => 40
-      t.column :salt,                      :string, :limit => 40
-      t.column :created_at,                :datetime
-      t.column :updated_at,                :datetime
-      t.column :remember_token,            :string, :limit => 40
-      t.column :remember_token_expires_at, :datetime
+      t.string   :login,                     :limit => 40
+      t.string   :name,                      :limit => 100, :default => '', :null => true
+      t.string   :email,                     :limit => 100
+      t.string   :crypted_password,          :limit => 40
+      t.string   :salt,                      :limit => 40
+      t.datetime :created_at
+      t.datetime :updated_at
+      t.string   :remember_token,            :limit => 40
+      t.datetime :remember_token_expires_at
 <% if options[:include_activation] -%>
-      t.column :activation_code,           :string, :limit => 40
-      t.column :activated_at,              :datetime<% end %>
+      t.string   :activation_code,           :limit => 40
+      t.datetime :activated_at<% end %>
 <% if options[:stateful] -%>
-      t.column :state,                     :string, :null => :no, :default => 'passive'
-      t.column :deleted_at,                :datetime<% end %>
+      t.string   :state,                     :null => :no, :default => 'passive'
+      t.datetime :deleted_at<% end %>
     end
     add_index :<%= table_name %>, :login, :unique => true
   end

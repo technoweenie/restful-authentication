@@ -3,7 +3,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # Be sure to include AuthenticationSystem in Application Controller instead
   include AuthenticatedSystem
 
-  # render new.rhtml
+  # render new.erb.html
   def new
   end
 
