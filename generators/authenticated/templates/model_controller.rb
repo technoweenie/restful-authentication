@@ -77,9 +77,9 @@ class <%= model_controller_class_name %>Controller < ApplicationController
   # smart -- make sure you check that the visitor is authorized to do so, that they
   # supply their old password along with a new one to update it, etc.
 
-protected
-  def find_<%= file_name %>
-    @<%= file_name %> = <%= class_name %>.find(params[:id])
-  end
-<% end -%>
+  protected
+    def find_<%= file_name %>
+      @<%= file_name %> = <%= class_name %>.find(params[:id])
+    end
+  <% end -%>
 end
